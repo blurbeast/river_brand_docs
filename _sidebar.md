@@ -6,3 +6,4 @@
 * [📄 05. Security & Auditing](05-security-compliance-and-auditing.md)
 * [📄 06. Future Upgrade Roadmap](06-future-upgrade-roadmap.md)
 * [📄 07. Dev & Operations Manual](07-developer-and-operations-manual.md)
+* [📄 08. Complete Service Catalog](08-service-catalog-and-deep-dive.md)

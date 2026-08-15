@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <!-- Node Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Animated Data Flow Path Dash -->
+    <style>
+      .flow-line {
+        stroke-dasharray: 8, 8;
+        animation: flowDash 1.2s linear infinite;
+      }
+      .flow-line-reverse {
+        stroke-dasharray: 8, 8;
+        animation: flowDashRev 1.2s linear infinite;
+      }
+      .pulse-node {
+        animation: nodePulse 2s ease-in-out infinite alternate;
+      }
+      @keyframes flowDash {
+        from { stroke-dashoffset: 32; }
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes flowDashRev {
+        from { stroke-dashoffset: 0; }
+        to { stroke-dashoffset: 32; }
+      }
+      @keyframes nodePulse {
+        from { opacity: 0.8; transform: scale(1); }
+        to { opacity: 1; filter: drop-shadow(0px 0px 8px #3b82f6); }
+      }
+      .node-text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 600; fill: #ffffff; }
+      .sub-text { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #94a3b8; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="480" rx="12" fill="url(#bg-grad)"/>
+
+  <!-- Title & Subtitle -->
+  <text x="450" y="36" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#38bdf8">LIVE SYSTEM DATA FLOW & TRANSACTION MOVEMENT</text>
+  <text x="450" y="56" text-anchor="middle" class="sub-text">Real-Time Asynchronous Processing Loop (API ➔ Redis Lock ➔ PostgreSQL ➔ Outbox ➔ Notifications)</text>
+
+  <!-- Connecting Animated Lines -->
+  <!-- 1. Client to API Gateway -->
+  <path d="M 140 160 L 250 160" stroke="#3b82f6" stroke-width="3" fill="none" class="flow-line"/>
+  <!-- 2. API Gateway to Redis -->
+  <path d="M 370 140 L 480 100" stroke="#ef4444" stroke-width="3" fill="none" class="flow-line"/>
+  <!-- 3. API Gateway to Postgres -->
+  <path d="M 370 180 L 480 230" stroke="#10b981" stroke-width="3" fill="none" class="flow-line"/>
+  <!-- 4. Postgres to Outbox -->
+  <path d="M 600 230 L 710 230" stroke="#f59e0b" stroke-width="3" fill="none" class="flow-line"/>
+  <!-- 5. Outbox to Outgoing Channels (WhatsApp, FCM, Email) -->
+  <path d="M 770 190 L 770 120 L 830 120" stroke="#a855f7" stroke-width="2.5" fill="none" class="flow-line"/>
+  <path d="M 770 230 L 830 230" stroke="#38bdf8" stroke-width="2.5" fill="none" class="flow-line"/>
+  <path d="M 770 270 L 770 340 L 830 340" stroke="#ec4899" stroke-width="2.5" fill="none" class="flow-line"/>
+
+  <!-- NODES -->
+  <!-- Node 1: Mobile / Web Client -->
+  <g transform="translate(30, 120)" class="pulse-node">
+    <rect width="110" height="80" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <text x="55" y="36" text-anchor="middle" class="node-text">📱 Client App</text>
+    <text x="55" y="54" text-anchor="middle" class="sub-text">Mobile / Web</text>
+  </g>
+
+  <!-- Node 2: Fastify API Gateway -->
+  <g transform="translate(250, 120)" class="pulse-node">
+    <rect width="120" height="80" rx="10" fill="#1e293b" stroke="#0284c7" stroke-width="2.5" filter="url(#glow)"/>
+    <text x="60" y="34" text-anchor="middle" class="node-text">⚡ Fastify API</text>
+    <text x="60" y="52" text-anchor="middle" class="sub-text">Ajv Schema / JIT</text>
+  </g>
+
+  <!-- Node 3: Redis In-Memory Store -->
+  <g transform="translate(480, 60)" class="pulse-node">
+    <rect width="120" height="75" rx="10" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+    <text x="60" y="32" text-anchor="middle" class="node-text">🔴 Redis 7 Cache</text>
+    <text x="60" y="50" text-anchor="middle" class="sub-text">Redlock & Limits</text>
+  </g>
+
+  <!-- Node 4: PostgreSQL Master Vault -->
+  <g transform="translate(480, 190)" class="pulse-node">
+    <rect width="120" height="80" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2.5"/>
+    <text x="60" y="34" text-anchor="middle" class="node-text">🐘 PostgreSQL 15</text>
+    <text x="60" y="52" text-anchor="middle" class="sub-text">Immutable Ledger</text>
+  </g>
+
+  <!-- Node 5: Transactional Outbox -->
+  <g transform="translate(710, 190)" class="pulse-node">
+    <rect width="120" height="80" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+    <text x="60" y="34" text-anchor="middle" class="node-text">📬 Outbox Queue</text>
+    <text x="60" y="52" text-anchor="middle" class="sub-text">Retry & DLQ Worker</text>
+  </g>
+
+  <!-- Node 6: WhatsApp Gateway -->
+  <g transform="translate(810, 95)" class="pulse-node">
+    <rect width="80" height="50" rx="8" fill="#1e293b" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="40" y="30" text-anchor="middle" class="node-text" font-size="11">💬 WhatsApp</text>
+  </g>
+
+  <!-- Node 7: FCM Push Notification -->
+  <g transform="translate(810, 205)" class="pulse-node">
+    <rect width="80" height="50" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="40" y="30" text-anchor="middle" class="node-text" font-size="11">🔔 FCM Push</text>
+  </g>
+
+  <!-- Node 8: Mailer (SendGrid / Brevo) -->
+  <g transform="translate(810, 315)" class="pulse-node">
+    <rect width="80" height="50" rx="8" fill="#1e293b" stroke="#ec4899" stroke-width="1.5"/>
+    <text x="40" y="30" text-anchor="middle" class="node-text" font-size="11">✉️ Mailer</text>
+  </g>
+
+  <!-- Bottom Legend / Info Bar -->
+  <rect x="50" y="420" width="800" height="40" rx="8" fill="#0284c7" fill-opacity="0.15" stroke="#0284c7" stroke-width="1"/>
+  <text x="450" y="445" text-anchor="middle" class="sub-text" font-size="12" fill="#38bdf8">💡 Moving glowing dashes represent live asynchronous non-blocking data packets passing between server layers.</text>
+</svg>

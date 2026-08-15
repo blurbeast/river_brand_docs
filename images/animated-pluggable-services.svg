@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-grad-plug" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="100%" stop-color="#182234"/>
+    </linearGradient>
+
+    <style>
+      .flow-plug {
+        stroke-dasharray: 6, 6;
+        animation: plugFlow 1s linear infinite;
+      }
+      .pulse-provider {
+        animation: providerGlow 2.5s ease-in-out infinite alternate;
+      }
+      @keyframes plugFlow {
+        from { stroke-dashoffset: 24; }
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes providerGlow {
+        from { opacity: 0.85; filter: drop-shadow(0px 0px 3px rgba(56,189,248,0.3)); }
+        to { opacity: 1; filter: drop-shadow(0px 0px 10px rgba(56,189,248,0.8)); }
+      }
+      .head-title { font-family: system-ui, -apple-system, sans-serif; font-size: 19px; font-weight: 700; fill: #38bdf8; }
+      .sub-title { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #94a3b8; }
+      .label-text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 600; fill: #ffffff; }
+      .badge-text { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; font-weight: 700; fill: #38bdf8; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="500" rx="12" fill="url(#bg-grad-plug)"/>
+
+  <!-- Header -->
+  <text x="450" y="36" text-anchor="middle" class="head-title">LIVE PLUGGABLE PROVIDER SWITCHING & DYNAMIC GATEWAYS</text>
+  <text x="450" y="56" text-anchor="middle" class="sub-title">Decoupled Adapter Architecture (Configuration-Driven Gateway Failover & Zero Core Banking Mutability)</text>
+
+  <!-- Core Banking Application (Center Core) -->
+  <g transform="translate(360, 200)" class="pulse-provider">
+    <rect width="180" height="110" rx="14" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/>
+    <text x="90" y="45" text-anchor="middle" class="label-text" font-size="15">🏦 CORE BANKING</text>
+    <text x="90" y="65" text-anchor="middle" class="label-text" font-size="15">DOMAIN ENGINE</text>
+    <text x="90" y="88" text-anchor="middle" class="sub-text" fill="#38bdf8">Factory & Strategy Drivers</text>
+  </g>
+
+  <!-- Flow Lines to Providers -->
+  <!-- 1. Top Left: Virtual Accounts (Providus / Fincra) -->
+  <path d="M 360 220 L 220 120" stroke="#10b981" stroke-width="2.5" fill="none" class="flow-plug"/>
+  <!-- 2. Bottom Left: SMS & OTP (Termii / Twilio) -->
+  <path d="M 360 290 L 220 380" stroke="#f59e0b" stroke-width="2.5" fill="none" class="flow-plug"/>
+  <!-- 3. Top Right: Mailer Chain (SendGrid / Brevo) -->
+  <path d="M 540 220 L 680 120" stroke="#ec4899" stroke-width="2.5" fill="none" class="flow-plug"/>
+  <!-- 4. Bottom Right: Identity & Cards (Dojah / Flutterwave) -->
+  <path d="M 540 290 L 680 380" stroke="#8b5cf6" stroke-width="2.5" fill="none" class="flow-plug"/>
+
+  <!-- PROVIDER GROUPS -->
+
+  <!-- Group 1: Virtual NUBAN Account Gateways (Top Left) -->
+  <g transform="translate(40, 80)">
+    <rect width="180" height="100" rx="10" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+    <text x="90" y="24" text-anchor="middle" class="label-text" fill="#10b981">💳 Virtual Accounts</text>
+    <rect x="15" y="36" width="150" height="24" rx="4" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+    <text x="90" y="52" text-anchor="middle" class="sub-text" fill="#ffffff">ProvidusBank (Primary)</text>
+    <rect x="15" y="66" width="150" height="24" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+    <text x="90" y="82" text-anchor="middle" class="sub-text" fill="#94a3b8">Fincra Gateway (Fallback)</text>
+  </g>
+
+  <!-- Group 2: SMS & OTP Gateways (Bottom Left) -->
+  <g transform="translate(40, 330)">
+    <rect width="180" height="100" rx="10" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+    <text x="90" y="24" text-anchor="middle" class="label-text" fill="#f59e0b">📱 SMS & OTP Router</text>
+    <rect x="15" y="36" width="150" height="24" rx="4" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+    <text x="90" y="52" text-anchor="middle" class="sub-text" fill="#ffffff">Termii API (Primary NGN)</text>
+    <rect x="15" y="66" width="150" height="24" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+    <text x="90" y="82" text-anchor="middle" class="sub-text" fill="#94a3b8">Twilio API (Backup Global)</text>
+  </g>
+
+  <!-- Group 3: Email Mailer Chain (Top Right) -->
+  <g transform="translate(680, 80)">
+    <rect width="180" height="100" rx="10" fill="#0f172a" stroke="#ec4899" stroke-width="2"/>
+    <text x="90" y="24" text-anchor="middle" class="label-text" fill="#ec4899">✉️ Email Mailer Chain</text>
+    <rect x="15" y="36" width="150" height="24" rx="4" fill="#1e293b" stroke="#ec4899" stroke-width="1"/>
+    <text x="90" y="52" text-anchor="middle" class="sub-text" fill="#ffffff">SendGrid Driver (Prod)</text>
+    <rect x="15" y="66" width="150" height="24" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+    <text x="90" y="82" text-anchor="middle" class="sub-text" fill="#94a3b8">Brevo / Mailpit (Fallback)</text>
+  </g>
+
+  <!-- Group 4: Identity & Cards (Bottom Right) -->
+  <g transform="translate(680, 330)">
+    <rect width="180" height="100" rx="10" fill="#0f172a" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="90" y="24" text-anchor="middle" class="label-text" fill="#8b5cf6">🛡️ Identity & Cards</text>
+    <rect x="15" y="36" width="150" height="24" rx="4" fill="#1e293b" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="90" y="52" text-anchor="middle" class="sub-text" fill="#ffffff">Dojah Gateway (BVN/NIN)</text>
+    <rect x="15" y="66" width="150" height="24" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+    <text x="90" y="82" text-anchor="middle" class="sub-text" fill="#94a3b8">Flutterwave (Cards)</text>
+  </g>
+
+  <!-- Bottom Explanatory Banner -->
+  <rect x="100" y="455" width="700" height="35" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+  <text x="450" y="477" text-anchor="middle" class="sub-text" fill="#38bdf8">⚡ If any primary provider experiences an outage, Riverbrand instantly routes requests to the fallback provider automatically.</text>
+</svg>

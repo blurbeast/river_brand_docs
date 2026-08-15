@@ -44,6 +44,7 @@ The documentation suite is structured into 7 dedicated chapters:
 | 📄 [**05. Security, Revocation & Auditing**](./05-security-compliance-and-auditing.md) | **Security Officers / Compliance** | Dual-Token isolation (`x-local-access-token` vs `x-web-access-token`), sidecar session invalidation (`jwt_version`), Argon2/bcrypt PINs, multi-channel OTP, RBAC, non-blocking audit trails. |
 | 📄 [**06. Future Strategic Upgrade Roadmap**](./06-future-upgrade-roadmap.md) | **CTO / VP Engineering / Product Strategy** | Microservices decomposition blueprint, Kafka event streaming, multi-region database replication, AI/ML real-time fraud detection engine, automated AML screening, Open Banking APIs. |
 | 📄 [**07. Developer & Operations Manual**](./07-developer-and-operations-manual.md) | **DevOps / Backend Engineers** | Local setup guide, Docker Compose deployment, environment variables catalog, database migrations, interactive Scalar/Swagger UI docs, troubleshooting playbook. |
+| 📄 [**08. Complete Backend Service Catalog**](./08-service-catalog-and-deep-dive.md) | **Core Backend Engineers / System Auditors** | Line-by-line service specifications for all 31+ core backend services, detailing DTO payloads, database entities, external dependencies, error codes, and configuration switches. |
 
 ---
 

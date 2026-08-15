@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <style>
+      .fin-flow {
+        stroke-dasharray: 8, 8;
+        animation: finDash 1.2s linear infinite;
+      }
+      .fin-pulse {
+        animation: finGlow 2s ease-in-out infinite alternate;
+      }
+      @keyframes finDash {
+        from { stroke-dashoffset: 32; }
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes finGlow {
+        from { opacity: 0.85; filter: drop-shadow(0px 0px 4px #10b981); }
+        to { opacity: 1; filter: drop-shadow(0px 0px 12px #34d399); }
+      }
+      .fin-title { font-family: system-ui, -apple-system, sans-serif; font-size: 20px; font-weight: 700; fill: #34d399; }
+      .fin-sub { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #a7f3d0; }
+      .fin-node-title { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 600; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="480" rx="12" fill="url(#bg-fin)"/>
+
+  <!-- Title -->
+  <text x="450" y="36" text-anchor="middle" class="fin-title">LIVE MONEY MOVEMENT & BALANCE LEDGER ENGINE</text>
+  <text x="450" y="56" text-anchor="middle" class="fin-sub">Atomic Wallet Locking ➔ Pending Balance Ceiling Hold ➔ KYC Limit Compliance ➔ Multi-Channel Alerting</text>
+
+  <!-- Flow Lines -->
+  <path d="M 150 200 L 260 200" stroke="#34d399" stroke-width="3" fill="none" class="fin-flow"/>
+  <path d="M 380 200 L 490 200" stroke="#38bdf8" stroke-width="3" fill="none" class="fin-flow"/>
+  <path d="M 610 200 L 720 200" stroke="#f59e0b" stroke-width="3" fill="none" class="fin-flow"/>
+
+  <path d="M 550 240 L 550 340 L 720 340" stroke="#ec4899" stroke-width="2.5" fill="none" class="fin-flow"/>
+
+  <!-- Stage 1: Debit Request & Redis Lock -->
+  <g transform="translate(30, 150)" class="fin-pulse">
+    <rect width="120" height="100" rx="12" fill="#1e293b" stroke="#34d399" stroke-width="2.5"/>
+    <text x="60" y="32" text-anchor="middle" class="fin-node-title">💸 Debit Request</text>
+    <text x="60" y="52" text-anchor="middle" class="fin-sub">Redis Lock Key</text>
+    <text x="60" y="70" text-anchor="middle" class="fin-sub" fill="#34d399">lock:wallet:{id}</text>
+  </g>
+
+  <!-- Stage 2: Financial Engine & Ledger -->
+  <g transform="translate(260, 150)" class="fin-pulse">
+    <rect width="120" height="100" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5"/>
+    <text x="60" y="32" text-anchor="middle" class="fin-node-title">🏛️ Financial Engine</text>
+    <text x="60" y="52" text-anchor="middle" class="fin-sub">Prisma $transaction</text>
+    <text x="60" y="70" text-anchor="middle" class="fin-sub" fill="#38bdf8">Atomic Balance Sync</text>
+  </g>
+
+  <!-- Stage 3: Pending Balance & Daily Limits -->
+  <g transform="translate(490, 150)" class="fin-pulse">
+    <rect width="120" height="100" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="2.5"/>
+    <text x="60" y="30" text-anchor="middle" class="fin-node-title">🛡️ KYC & Holds</text>
+    <text x="60" y="48" text-anchor="middle" class="fin-sub">Daily Limit Check</text>
+    <text x="60" y="66" text-anchor="middle" class="fin-sub" fill="#f59e0b">Pending Balance</text>
+    <text x="60" y="84" text-anchor="middle" class="fin-sub" fill="#a7f3d0">Hold & Auto-Release</text>
+  </g>
+
+  <!-- Stage 4: Outbound Dispatchers -->
+  <g transform="translate(720, 150)" class="fin-pulse">
+    <rect width="130" height="100" rx="12" fill="#1e293b" stroke="#a855f7" stroke-width="2.5"/>
+    <text x="65" y="34" text-anchor="middle" class="fin-node-title">⚡ Outbox Dispatch</text>
+    <text x="65" y="54" text-anchor="middle" class="fin-sub">Real-Time Receipts</text>
+    <text x="65" y="74" text-anchor="middle" class="fin-sub" fill="#a855f7">Zero Data Loss</text>
+  </g>
+
+  <!-- Stage 5: Pending Balance Audit Trail (Bottom Right) -->
+  <g transform="translate(720, 300)" class="fin-pulse">
+    <rect width="130" height="80" rx="10" fill="#1e293b" stroke="#ec4899" stroke-width="2"/>
+    <text x="65" y="32" text-anchor="middle" class="fin-node-title" font-size="12">📋 Audit Trail</text>
+    <text x="65" y="50" text-anchor="middle" class="fin-sub">Pending Audit Table</text>
+    <text x="65" y="66" text-anchor="middle" class="fin-sub" fill="#ec4899">rbp_pending_audit</text>
+  </g>
+
+  <!-- Footer Banner -->
+  <rect x="100" y="430" width="700" height="35" rx="6" fill="#1e293b" stroke="#34d399" stroke-width="1"/>
+  <text x="450" y="452" text-anchor="middle" class="fin-sub" fill="#34d399">🔒 Double-entry accounting ensures total liabilities equal total ledger assets across all currencies.</text>
+</svg>
