@@ -55,21 +55,24 @@ While the current modular monolith architecture excels in performance, developer
 
 As database read and write IOPS increase, the storage layer must evolve to maintain zero-latency responsiveness.
 
-```
-                               ┌─────────────────────────────┐
-                               │ Primary Database (R/W)      │
-                               │ PostgreSQL 15 / CockroachDB │
-                               └──────────────┬──────────────┘
-                                              │
-                      ┌───────────────────────┴───────────────────────┐
-                      ▼                                               ▼
-       ┌─────────────────────────────┐                 ┌─────────────────────────────┐
-       │ Read Replica 1 (RO)         │                 │ Read Replica 2 (RO)         │
-       │ Analytics & Reporting       │                 │ User Queries & Statements   │
-       └─────────────────────────────┘                 └─────────────────────────────┘
-```
+![Database Connection Pooling and Read Replicas](./images/pgbouncer-read-replicas.png)
 
-### Proposed Storage Upgrades
+### Plain-English Non-Technical Explanation
+
+#### 1. What is PgBouncer Connection Pooling? (The Post Office Queue Manager)
+- **The Problem Without PgBouncer**: Imagine 5,000 customers all walking into a small physical bank branch at the exact same second, each demanding their own personal teller. The lobby gets crowded, memory crashes, and the front door gets jammed shut.
+- **The Solution With PgBouncer**: PgBouncer acts as an elite **Concierge & Queue Manager** at the front door. Instead of spawning 5,000 heavy, expensive database connections, PgBouncer maintains a small, highly efficient pool of 50 active tellers. As thousands of app requests arrive, PgBouncer hands each request to an available teller for a millisecond and immediately reuses that teller for the next customer in line. **Result**: 5,000 app requests are processed seamlessly with zero crashes using just 50 background connections.
+
+#### 2. What are PostgreSQL Read-Replicas? (The Master Vault vs. Display Mirrors)
+- **The Problem Without Read-Replicas**: Every time 100,000 users open their mobile apps just to check their active wallet balance or view transaction history (Read operations), they knock on the doors of the main vault where actual money transfers are being written (Write operations). The main vault gets bogged down answering simple balance queries.
+- **The Solution With Read-Replicas**: We split the database into one **Primary Master Vault** and multiple **Read-Replica Mirrors**:
+  - **Primary Master Vault (Write Database)**: Handles *only* money movement (debits, credits, transfers, Safelock creation).
+  - **Read-Replica Mirrors (Read Database)**: Live, synchronized copies that handle 100% of balance checks, profile views, and history searches.
+- **Result**: All 100,000 users checking their balance ask the Read Mirrors, leaving the Primary Master Vault 100% free to execute money transfers at lightning speed.
+
+---
+
+### Proposed Technical Storage Upgrades
 
 1. **PgBouncer Connection Pooling**: Deploy PgBouncer proxies in front of PostgreSQL to manage thousands of concurrent client database connection requests with minimal RAM overhead.
 2. **PostgreSQL Read-Replicas**: Split database traffic so that 100% of read queries (user dashboards, transaction histories, admin stats) execute against read-only replicas, keeping the primary database dedicated strictly to write transactions.
