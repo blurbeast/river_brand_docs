@@ -1,7 +1,7 @@
 # 📄 Chapter 2: Technical Architecture & System Topology
 
 > **"How We Achieved It"**  
-> *Technical System Architecture, Pluggable Provider Design, Low-Latency Engineering, Database Modeling & Event Infrastructure.*
+> *Technical System Architecture, Pluggable Provider Design, Low-Latency Engineering, PgBouncer Connection Pooling, Prisma Read Replicas & Event Infrastructure.*
 
 ---
 
@@ -24,9 +24,16 @@ The Riverbrand Enterprise Digital Banking Engine (`RiverbrandBE`) is built on a 
            │                                        └────────────────────┘
            ▼
 ┌───────────────────────┐
-│ PostgreSQL 15 Engine  │
-│ ACID Compliance       │
+│ PgBouncer Proxy 6432  │
+│ Connection Pooler     │
 └───────────────────────┘
+           │
+     ┌─────┴────────────────────────────────┐
+     ▼                                      ▼
+┌───────────────────────┐        ┌───────────────────────┐
+│ Primary PostgreSQL 15 │        │ Read-Replica Mirror 1 │
+│ Write Master (R/W)    │        │ Read Queries (RO)     │
+└───────────────────────┘        └───────────────────────┘
 ```
 
 ### Stack Components & Selection Justifications
@@ -37,20 +44,83 @@ The Riverbrand Enterprise Digital Banking Engine (`RiverbrandBE`) is built on a 
 | **Framework** | Fastify | v4.x / v5.x | Up to 400% faster throughput than traditional Express.js. Native schema-based serialization with Ajv, zero overhead route resolution, and built-in plugin encapsulation. |
 | **Language** | TypeScript | v5.3+ | Strict static typing across all request payloads, database queries, domain interfaces, and external gateway contracts, eliminating runtime type errors. |
 | **Database & ORM** | PostgreSQL 15 & Prisma ORM 5.x | PostgreSQL 15<br/>Prisma 5.x | Robust relational integrity, ACID transaction guarantees, full-text search capabilities, combined with Prisma's auto-generated type-safe client and declarative migrations. |
+| **Connection Pooler** | PgBouncer | v1.21+ | Dedicated PostgreSQL process connection manager. Converts 5,000 client connections into 50 pooled process connections, reducing DB RAM by 90%. |
 | **Cache & In-Memory Store** | Redis | v7.x | High-speed memory storage used for Token Bucket Rate Limiting, distributed locking (`Redlock`), session cache, and active JWT blacklist storage. |
 | **Dependency Injection** | TypeDI (`typedi`) | v0.10.x | Loose coupling between Controllers, Services, and Repositories via constructor-based Dependency Injection (`@Service()`). |
 | **API Documentation** | `@fastify/swagger` & `@scalar/fastify-api-reference` | Latest | Auto-generated interactive OpenAPI 3.0 documentation served at `/documentation` (Swagger UI) and `/reference` (Scalar). |
 
 ---
 
-## 2.2 Pluggable Architecture & Low-Latency Engineering
+## 2.2 PostgreSQL Connection Architecture: PgBouncer & Read Replicas
+
+### 1. Does Riverbrand Use Database Connections?
+**Yes, absolutely.** Riverbrand relies on PostgreSQL 15 as its core relational persistence engine. 
+- Every API endpoint that handles authentication, wallet balances, money transfers, or bill payments communicates with PostgreSQL via **Prisma ORM 5.x**.
+- When the Fastify server starts up (`src/index.ts`), Prisma establishes an active database connection pool.
+
+### 2. Why PgBouncer is Specific to PostgreSQL
+You correctly identified that **PgBouncer is a specialized proxy built specifically for PostgreSQL**. Here is why PostgreSQL requires PgBouncer:
+
+- **The Process Architecture of PostgreSQL**: Unlike MySQL or Microsoft SQL Server (which use lightweight internal threads for connections), PostgreSQL spawns a **full Operating System Process (`fork()`)** for every client connection. Each connection process consumes **8 MB to 10 MB of RAM** and requires CPU context switching.
+- **The Problem**: If 5,000 Fastify app instances or worker threads open direct connections to PostgreSQL, PostgreSQL is forced to run 5,000 heavy OS processes, consuming **50 GB of RAM** just to maintain idle connections!
+- **The PgBouncer Solution**: PgBouncer sits between Riverbrand's Node.js application and PostgreSQL on port `6432`. To Prisma, PgBouncer looks exactly like PostgreSQL. But behind the scenes, PgBouncer maintains a tiny pool of **50 actual OS connections** to PostgreSQL. As 5,000 incoming queries arrive from Node.js, PgBouncer routes them through the 50 pooled connections in transaction mode (`pgbouncer=true`).
+
+#### Prisma Connection String with PgBouncer (`.env`)
+```env
+# Connection String via PgBouncer Pooler (Transaction Mode)
+DATABASE_URL="postgresql://riverbrand:secret@pgbouncer:6432/riverbank_prod_db?schema=public&pgbouncer=true&connection_limit=50"
+```
+
+---
+
+### 3. How Read Replicas (DB Read Mirrors) Work in Riverbrand
+
+In digital banking, **85% of database queries are Read operations** (checking balance, viewing transaction receipts, fetching user profile), while **15% are Write operations** (wallet debits, credits, transfers).
+
+To prevent read queries from slowing down money transfers, we split PostgreSQL into a **Primary Master (R/W)** and **Read Replica Mirrors (RO)**:
+
+```
+[Fastify Node.js Application]
+             │
+             ├──► Writes (UPDATE balance, INSERT transaction) ──► 🏛️ Primary Master DB (R/W)
+             │                                                         │
+             │                                              (Replication < 1ms)
+             │                                                         ▼
+             └──► Reads (SELECT balance, SELECT profile)  ──────► 🪞 Read Replica Mirrors (RO)
+```
+
+#### Configuring Read Replicas in Prisma ORM (`src/database/index.ts`)
+Using the `@prisma/extension-read-replicas` extension, Prisma automatically routes writes to the Primary Master DB and reads to the Replica Mirrors:
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+import { readReplicas } from '@prisma/extension-read-replicas';
+
+const basePrisma = new PrismaClient();
+
+export const prisma = basePrisma.$extends(
+  readReplicas({
+    url: [
+      process.env.DATABASE_READ_REPLICA_URL_1!, // Read Mirror 1
+      process.env.DATABASE_READ_REPLICA_URL_2!, // Read Mirror 2
+    ],
+  })
+);
+```
+
+- **Automatic Query Routing**: When code executes `prisma.wallet.update({ ... })` or `prisma.$transaction(...)`, Prisma routes the query to the **Primary Master DB**.
+- When code executes `prisma.wallet.findUnique({ ... })` or `prisma.transaction.findMany({ ... })`, Prisma routes the query to **Read Replica Mirrors**, ensuring balance checks never slow down money transfers!
+
+---
+
+## 2.3 Pluggable Architecture & Low-Latency Engineering
 
 Rather than tightly coupling business rules directly to specific vendors (e.g. tying money transfers directly to a single card processor or SMS vendor), Riverbrand implements a **Pluggable Modular Design**.
 
 ![Pluggable Low-Latency Architecture](./images/pluggable-architecture.png)
 
 ### 1. Plain-English Non-Technical Explanation (The Universal Power Plug)
-- **Legacy Monolith Problem (Tightly Coupled)**: In old legacy banking systems, if you wanted to switch your SMS vendor from Termii to Twilio, or change card processors from Flutterwave to Paystack, developers had to rewrite half the application code. It was like hardwiring your television directly into the wall—if you changed houses, you had to break the wall.
+- **Legacy Monolith Problem (Tightly Coupled)**: In old legacy banking systems, if you wanted to switch your SMS vendor from Termii to Twilio, or change card processors from Flutterwave to Paystack, developers had to rewrite half the application code. It was like hardwiring your television directly into the wall bricks—if you moved house, you had to tear down the wall.
 - **Riverbrand Pluggable Approach (Universal Plug-and-Play)**: Riverbrand acts like a **Universal Power Socket**. Payment gateways, SMS providers, email delivery services, and alerting channels are separate, standardized "plugs". Adding a new payment gateway or SMS provider requires snapping in a new adapter without touching a single line of core banking wallet code!
 
 ### 2. Deep Technical Implementation Patterns
@@ -81,7 +151,7 @@ Rather than tightly coupling business rules directly to specific vendors (e.g. t
 
 ---
 
-## 2.3 Modular Monolith Architecture
+## 2.4 Modular Monolith Architecture
 
 The application is structured as a **Modular Monolith**. This architectural pattern provides the simplicity of a single deployable unit with the clean boundaries and modularity of microservices, making future microservice extraction straightforward when scale demands it.
 
@@ -117,7 +187,7 @@ RiverbrandBE/
 
 ---
 
-## 2.4 Database Schema & Relational Integrity
+## 2.5 Database Schema & Relational Integrity
 
 The persistence model managed in `src/database/schema.prisma` contains over 60 relational models designed to maintain strict financial consistency while preserving backward compatibility with legacy data schemas.
 
@@ -141,18 +211,9 @@ erDiagram
     UserRole }|--|| user_user : "assigned to user"
 ```
 
-### Key Technical Entities Summary
-
-1. **`user_user`**: Master core user entity storing identity details, hashed authentication passwords, email, phone number, and account verification tier (`TIER1`, `TIER2`, `TIER3`).
-2. **`river_brand_sys_user_session_control`**: Non-invasive sidecar table storing `jwt_version` and `last_logout_at`. Used to invalidate tokens instantly across all devices without mutating legacy user tables.
-3. **`Wallet` & `userAccountDetails`**: Financial entities representing currency balances (NGN, USD, EUR) and dedicated virtual bank accounts (ProvidusBank / Fincra NUBANs).
-4. **`Transaction` & `payment_transaction`**: Immutable ledger tables tracking credit, debit, transfer, and bill payment movements with unique transaction references (`ref`, `referenceId`, `extReferenceId`).
-5. **`rbp_brand_pending_balance` & `rbp_brand_pending_balance_audit`**: Holds locked wallet funds that exceed user KYC daily ceilings, providing structured audit logs upon release (`rbp_brand_pending_balance_audit`).
-6. **`rbp_brand_daily_limit_tracker`**: Tracks daily debit volume per user per calendar day (`YYYY-MM-DD`), enforcing tier-based compliance limits.
-
 ---
 
-## 2.5 Transactional Outbox Pattern & Event Relay
+## 2.6 Transactional Outbox Pattern & Event Relay
 
 To solve the dual-write problem (where database updates succeed but external webhook notifications fail due to network glitches), Riverbrand uses the **Transactional Outbox Pattern**.
 
@@ -171,15 +232,9 @@ To solve the dual-write problem (where database updates succeed but external web
                                            [DLQ Replayer Job (src/job/dlq.ts)]
 ```
 
-### Outbox Mechanics (`rbp_brand_outbox` & `rbp_brand_deadletter`)
-
-1. **Atomic Insertion**: When a financial event occurs (e.g., a transfer or virtual account creation), the business logic inserts a event record into `rbp_brand_outbox` within the **same SQL transaction** (`$transaction`) as the financial state mutation.
-2. **Outbox Polling Worker (`src/job/outbox.ts`)**: A background cron process queries pending outbox records (`status = PENDING`) ordered by `createdAt`. It attempts to dispatch the event payload to external webhook receivers, email queues, or push notification dispatchers.
-3. **Dead Letter Queue (`src/job/dlq.ts`)**: If a message fails execution after 5 exponential backoff retries, it is automatically safely routed to `rbp_brand_deadletter` with the complete stack trace and error diagnostic, where operations teams can inspect and trigger one-click manual replays.
-
 ---
 
-## 2.6 Operational Observability & Metrics Infrastructure
+## 2.7 Operational Observability & Metrics Infrastructure
 
 Riverbrand embeds deep observability directly into the server pipeline using Prometheus metrics and Fastify hooks.
 
@@ -197,8 +252,8 @@ Riverbrand embeds deep observability directly into the server pipeline using Pro
 
 ---
 
-## 2.7 Summary
+## 2.8 Summary
 
-By combining pluggable provider interfaces, TypeDI dependency injection, Fastify's JIT compilation, Redis in-memory concurrency controls, and the Transactional Outbox pattern, Riverbrand achieves an ultra-low latency, loosely coupled architecture ready for enterprise scale.
+By combining PgBouncer connection pooling, Prisma read replica routing, pluggable provider interfaces, TypeDI dependency injection, Fastify JIT compilation, and the Transactional Outbox pattern, Riverbrand achieves an ultra-low latency, scalable banking architecture.
 
 *Next Chapter: [03. Core Banking & Financial Engine](./03-core-banking-and-financial-engine.md) — Financial Ledger, Money Movement & Double-Spending Guard.*
