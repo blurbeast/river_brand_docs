@@ -11,7 +11,7 @@ The **Riverbrand Enterprise Digital Banking Platform** (`RiverbrandBE`) is a hig
 
 In today's fast-evolving fintech landscape, modern financial institutions require systems that combine **uncompromised speed**, **absolute transaction integrity**, **strict regulatory compliance**, and **multi-channel accessibility**. Riverbrand fulfills this mission by serving as the central nervous system for all customer financial activities, money movement, wealth accumulation, identity verification, and automated customer communication.
 
-![System Movement Flow](./images/system-movement.png)
+![Riverbrand Digital Banking Ecosystem](./images/non-technical-high-level-ecosystem.png)
 
 ---
 
@@ -24,9 +24,43 @@ To understand how Riverbrand moves money securely, imagine a **Modern Airport & 
 3. **The Immutable Bank Vault (PostgreSQL Database)**: All account balances and transaction histories are stored in a tamper-proof database vault. Every cent moved is permanently recorded with double-entry ledger precision.
 4. **The Dispatch Couriers (Transactional Outbox & Notifications)**: Once a transaction is sealed in the vault, background couriers deliver instant confirmation receipts via WhatsApp messages, mobile push alerts, and email notifications.
 
+![System Movement Flow](./images/system-movement.png)
+
 ---
 
-## 1.3 Core Product Capabilities ("What the App Does")
+## 1.3 Omni-Channel Tri-Client Architecture: Mobile, Web & WhatsApp
+
+Riverbrand is engineered from the ground up as a **Unified Omni-Channel Digital Banking Engine**. It powers three first-class client channels, all operating against a single real-time ledger, distributed lock manager, and compliance core:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                                UNIFIED FASTIFY API BACKEND                              │
+│         Single Ledger | Real-Time Balances | Redlock Guard | KYC Limits | Outbox        │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+          │                                   │                                   │
+          ▼                                   ▼                                   ▼
+┌───────────────────────────┐   ┌───────────────────────────┐   ┌───────────────────────────┐
+│   📱 NATIVE MOBILE APP    │   │  💻 WEB PORTAL & ADMIN    │   │   💬 24/7 WHATSAPP BOT    │
+│      (iOS & Android)      │   │      (Customer & Staff)   │   │   (Conversational Chat)   │
+├───────────────────────────┤   ├───────────────────────────┤   ├───────────────────────────┤
+│ • Biometric / Face ID Auth│   │ • Customer Web Dashboard  │   │ • Zero-Friction Onboarding│
+│ • Flutterwave Card Top-up │   │ • Executive Stats Console │   │ • Conversational Transfers│
+│ • Live KYC Camera Uploads │   │ • Staff User Governance   │   │ • Airtime & Utility Bills │
+│ • Target Savings Trackers │   │ • Granular RBAC Matrix    │   │ • Instant Chat Receipts   │
+│ • FCM Multi-Device Push   │   │ • Non-Blocking Audit Logs │   │ • Multi-Currency Inquiries│
+│ • Header: `x-local-token` │   │ • Header: `x-web-token`   │   │ • Webhook HMAC Signature  │
+└───────────────────────────┘   └───────────────────────────┘   └───────────────────────────┘
+```
+
+| Client Channel | Target Audience | Primary Functionality | Security & Authentication Layer |
+| :--- | :--- | :--- | :--- |
+| **📱 Native Mobile App** *(iOS / Android)* | Everyday retail customers, wealth builders | Full mobile banking: biometric sign-in, tokenized debit card wallet funding, live camera document uploads for Tier 3 KYC, Safelock deposits, Target Savings progress bars, FCM real-time push notifications. | `x-local-access-token` header, device hardware pairing, Argon2id passwords, 4-digit PIN bcrypt. |
+| **💻 Customer Web Portal & Enterprise Admin Console** | Retail web customers & Administrative staff | Customer web dashboard, full funds transfer suite, executive financial metrics, system liabilities, user suspension/unsuspension, manual KYC approvals, granular RBAC permissions (`sys_roles`), system config flags, audit logs. | `x-web-access-token` header, short-lived browser session tokens, sidecar `jwt_version` instant revocation. |
+| **💬 WhatsApp Conversational Banking** | Mobile-first users, low-bandwidth customers | 24/7 conversational banking: passwordless onboarding, BVN lookup, interbank & P2P transfers, airtime/data top-up, electricity token delivery, DSTV renewals, multi-currency balance queries, instant chat receipts. | Provider HMAC-SHA256 signature verification (`x-hub-signature-256`, `X-Twilio-Signature`), 4-digit PIN auth, 3-attempt brute-force Redis lockout. |
+
+---
+
+## 1.4 Core Product Capabilities ("What the App Does")
 
 The application delivers eight major business functional pillars:
 
@@ -47,7 +81,7 @@ The application delivers eight major business functional pillars:
 
 ### 4. ⚡ Utility Bills, Airtime & Data Bundles
 - **Airtime & Mobile Data Top-up**: Instant purchase of airtime and data bundles across all major telecommunications networks (MTN, Airtel, Glo, 9mobile).
-- **Utility & Entertainment Payments**: Direct bill payments for Electricity utility providers, Cable TV subscriptions (DSTV, GOTV, Startimes), Internet service providers, and Gaming/Betting wallet top-ups.
+- **Utility & Entertainment Payments**: Direct bill payments for Electricity utility providers (prepaid meter token generation and postpaid clearing), Cable TV subscriptions (DSTV, GOTV, Startimes), Internet service providers, and Gaming/Betting wallet top-ups.
 - **Automated Digital Receipts**: Generates email and PDF receipts immediately following every completed bill transaction.
 
 ### 5. 📈 Wealth Management: Safelock, Target Goals & AutoSave
@@ -55,14 +89,16 @@ The application delivers eight major business functional pillars:
 - **Target Savings Goals**: Goal-based savings plans (e.g., "Rent 2027", "New Car Fund") with scheduled daily, weekly, or monthly automatic wallet debits.
 - **AutoSave Sweeps**: Automated rules that periodically sweep idle wallet balances into designated interest-bearing savings accounts.
 
-### 6. 💬 WhatsApp Conversational Banking Engine
-- **Full Banking on WhatsApp**: Customers can perform everyday banking tasks directly inside WhatsApp by conversing with Riverbrand's automated Meta Graph API chat engine.
-- **WhatsApp Capabilities**:
-  - Check active account balance and wallet summaries.
-  - Transfer funds to saved beneficiaries or new account numbers.
-  - Purchase airtime and mobile data instantly.
-  - Receive real-time transaction debit/credit notification messages.
-- **Security Control**: Conversational sessions require phone number pairing, secure PIN validation, and encrypted webhooks.
+### 6. 💬 24/7 WhatsApp Conversational Banking Engine
+- **Full Banking on WhatsApp**: Customers can perform everyday banking tasks directly inside WhatsApp by conversing with Riverbrand's automated multi-provider conversational engine.
+- **End-to-End WhatsApp Banking Capabilities**:
+  - **Zero-Friction Registration**: Unregistered users can sign up, verify email via OTP, validate BVN, capture selfie photo KYC, set their 4-digit transaction PIN, and receive an instant dedicated NUBAN bank account without leaving WhatsApp.
+  - **Instant Interbank & P2P Transfers**: Send money to any Nigerian bank or Riverbrand peer by simply typing the recipient account number and amount, authorized with secret 4-digit PIN.
+  - **Airtime & Data Purchases**: Buy mobile top-ups for self or third parties across MTN, Airtel, Glo, and 9mobile with automatic network detection.
+  - **Utility & Cable TV Payments**: Pay electricity bills and renew DSTV/GOTV subscriptions with instant token delivery in chat.
+  - **Multi-Currency Balance Inquiries**: Check live wallet balances in NGN, USD, EUR, and GBP with mini-statements.
+  - **Real-Time Debit/Credit Alerts**: Inbound deposits and outbound payments automatically push rich interactive receipt cards to the user's WhatsApp conversation.
+- **Multi-Provider Reliability**: Supports **Meta Graph API**, **Twilio Programmable Messaging**, **Termii WhatsApp**, **WATI**, **Interakt**, and **360dialog** with automated signature validation and failover.
 
 ### 7. 🛡️ Tiered KYC & Identity Verification
 - **Tier 1 (Basic)**: Standard registration with phone number verification and daily transaction limit of ₦50,000.
@@ -77,7 +113,22 @@ The application delivers eight major business functional pillars:
 
 ---
 
-## 1.4 Complete User Lifecycle: Five Multi-Currency Journey Scenarios
+## 1.5 Step-by-Step Customer Journey (Non-Technical Workflow)
+
+The diagram below illustrates how an everyday retail customer interacts with Riverbrand's multi-channel ecosystem, from initiating a chat on WhatsApp to authenticating securely and receiving instant digital confirmation receipts:
+
+![Non-Technical Low-Level User Journey](./images/non-technical-low-level-journey.png)
+
+### The 5-Step Frictionless Transaction Flow:
+1. **Step 1 — Open WhatsApp & Message Riverbrand**: User sends a friendly greeting (e.g., "Hi Riverbrand" or "Transfer 5000").
+2. **Step 2 — Instant Interactive Welcome Menu**: The conversational engine presents interactive button options (Transfer Money, Buy Airtime, Check Balance, Savings).
+3. **Step 3 — Enter Transaction Details**: User provides destination account number or picks from saved beneficiaries, with live account name resolution.
+4. **Step 4 — Authorize Securely with PIN**: High-risk financial operations prompt the customer for their secret 4-digit PIN (protected with bcrypt/argon2 hashing and brute-force lockout).
+5. **Step 5 — Instant Receipt & Dual Notification**: The transaction executes atomically, and the user receives a clean digital receipt card on WhatsApp alongside an FCM push notification.
+
+---
+
+## 1.6 Complete User Lifecycle: Five Multi-Currency Journey Scenarios
 
 To illustrate how users interact with Riverbrand across different currencies and financial goals, consider these five end-to-end user lifecycle scenarios:
 
@@ -85,7 +136,7 @@ To illustrate how users interact with Riverbrand across different currencies and
 
 ### 🇳🇬 Scenario 1: NGN Local Retail User Journey
 - **User Profile**: Tunde, a retail professional in Lagos.
-- **Step 1 (Sign-Up & Provisioning)**: Tunde registers on the mobile app. The system automatically provisions a dedicated NUBAN virtual account (`9920123456 - ProvidusBank`).
+- **Step 1 (Sign-Up & Provisioning)**: Tunde registers on the mobile app or WhatsApp. The system automatically provisions a dedicated NUBAN virtual account (`9920123456 - ProvidusBank`).
 - **Step 2 (Local Deposit)**: Tunde transfers ₦150,000 NGN from GTBank. Inbound webhook triggers atomic wallet credit, email receipt, and FCM push notification.
 - **Step 3 (Everyday Banking)**: Tunde opens WhatsApp and types "Pay DSTV". The WhatsApp bot validates his 4-digit PIN and executes a ₦35,000 bill payment instantly.
 
@@ -118,19 +169,19 @@ To illustrate how users interact with Riverbrand across different currencies and
 
 ---
 
-## 1.5 Business Value & Key Risk Mitigations
+## 1.7 Business Value & Key Risk Mitigations
 
 | Business Risk | How Riverbrand Engine Mitigates It | Plain-English Explanation |
 | :--- | :--- | :--- |
 | **Double-Spending & Race Conditions** | Distributed Redis Locks (`Redlock`) + SQL Transactions (`$transaction`) | Prevents a customer from tapping "Transfer" twice simultaneously on two phones to spend the same money twice. |
 | **Session Hijacking / Stolen Tokens** | Dual-Token Isolation + Sidecar `jwtVersion` Invalidation | If a user loses their phone or changes their password, all active logins across all devices are cut off instantly. |
-| **Third-Party Provider Outages** | Transactional Outbox Pattern + Dead Letter Queue (`DLQ`) | If a SMS or email vendor goes down temporarily, messages are queued safely and retried automatically when the vendor recovers—zero lost alerts. |
-| **Regulatory Non-Compliance (KYC/AML)** | Tiered Limits Tracker (`rbp_brand_daily_limit_tracker`) | Enforces exact daily transfer ceilings according to government regulations based on verified user identity level. |
+| **Third-Party Provider Outages** | Multi-Provider WhatsApp Fallback + Transactional Outbox Pattern | If one SMS, WhatsApp, or email vendor experiences downtime, the system dynamically switches to backup gateways without dropping transactions. |
+| **Regulatory Non-Compliance (KYC/AML)** | Tiered Limits Tracker (`rbp_brand_daily_limit_tracker`) + Dojah BVN/NIN Gateway | Enforces exact daily transfer ceilings according to government regulations based on verified user identity level. |
 | **Unauthorized Admin Abuse** | Non-Blocking Audit Trail + Granular RBAC | Ensures staff can only perform actions assigned to their exact role, and logs every staff click with timestamp and IP address. |
 
 ---
 
-## 1.6 Summary
+## 1.8 Summary
 
 The Riverbrand Enterprise Digital Banking Engine represents a robust, highly resilient digital bank in a box. It converts complex financial infrastructure into a seamless, elegant experience for everyday retail customers, wealth builders, and administrative teams.
 

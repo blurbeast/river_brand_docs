@@ -1,7 +1,7 @@
 # 📄 Chapter 7: Developer & Operations Manual
 
 > **"Engineering & Operations Playbook"**  
-> *A step-by-step technical setup, container orchestration, environment variable catalog, and operational troubleshooting guide.*
+> *A step-by-step technical setup, container orchestration, environment variable catalog, WhatsApp webhook setup, and operational troubleshooting guide.*
 
 ---
 
@@ -37,7 +37,7 @@ PORT=8010
 NODE_ENV=development
 APP_STAGE=DEV
 
-# Database Connections
+# Database Connections & PgBouncer
 DATABASE_URL="postgresql://riverbrand:riverbrand_secret_2026@postgres:5432/riverbank_prod_db?schema=public"
 REDIS_URL="redis://redis:6379"
 
@@ -63,6 +63,21 @@ PROVIDUS_CLIENT_ID="providus_client_id_here"
 FINCRA_SECRET_KEY="fincra_secret_key_here"
 FLUTTERWAVE_SECRET_KEY="FLWSECK_TEST-xxx-X"
 TERMII_API_KEY="termii_api_key_here"
+
+# WhatsApp Multi-Provider Configuration
+WHATSAPP_PROVIDER="meta" # Options: meta, twilio, termii, wati, interakt, 360dialog
+WHATSAPP_PHONE_NUMBER_ID="109283746592019"
+WHATSAPP_ACCESS_TOKEN="EAAxxxxxx"
+WHATSAPP_VERIFY_TOKEN="riverbrand_secure_webhook_verify_token_2026"
+WHATSAPP_APP_SECRET="fb_app_secret_hash_here"
+
+# Twilio WhatsApp Credentials (If provider is twilio)
+TWILIO_ACCOUNT_SID="ACxxxxxx"
+TWILIO_AUTH_TOKEN="tw_auth_token_here"
+TWILIO_WHATSAPP_NUMBER="whatsapp:+14155238886"
+
+# Termii WhatsApp Credentials (If provider is termii)
+TERMII_WHATSAPP_DEVICE_ID="termii_device_id_here"
 ```
 
 ---
@@ -118,7 +133,38 @@ npm run prisma:pull
 
 ---
 
-## 7.5 Interactive API Documentation & Local Web UI Services
+## 7.5 WhatsApp Banking Local Setup & Testing Tools
+
+### 1. Tunneling Local Fastify Webhooks via ngrok
+To receive real-time webhooks from Meta Graph API or Twilio on your local machine:
+```bash
+ngrok http 8010
+```
+Configure your Webhook URL in Meta Developer Dashboard:
+- Callback URL: `https://<your-ngrok-subdomain>.ngrok-free.app/whatsapp/webhook`
+- Verify Token: `riverbrand_secure_webhook_verify_token_2026`
+
+### 2. Automated WhatsApp Banking Test Suite (`scratch/test_whatsapp_banking.ts`)
+Run the end-to-end simulated chat test runner:
+```bash
+npx ts-node scratch/test_whatsapp_banking.ts
+```
+This script tests:
+- Main menu greeting and button rendering
+- Balance inquiries across NGN, USD, EUR, and GBP
+- Conversational interbank transfer flow with PIN authorization
+- Airtime top-up and network resolution
+- Brute-force PIN lockout after 3 failed attempts
+
+### 3. Twilio Studio Flow Template Builder (`scripts/create-twilio-flow-template.js`)
+To deploy a visual Twilio Studio Flow JSON template connected to Riverbrand webhook rails:
+```bash
+node scripts/create-twilio-flow-template.js
+```
+
+---
+
+## 7.6 Interactive API Documentation & Local Web UI Services
 
 When the Docker stack is running, access the local developer services:
 
@@ -127,12 +173,13 @@ When the Docker stack is running, access the local developer services:
 | 📖 **Swagger UI Documentation** | [http://localhost:8010/documentation](http://localhost:8010/documentation) | Interactive OpenAPI 3.0 route testing interface. |
 | ⚡ **Scalar Modern API Reference** | [http://localhost:8010/reference](http://localhost:8010/reference) | Modern interactive API reference interface. |
 | 📄 **Raw OpenAPI 3.0 JSON Spec** | [http://localhost:8010/documentation/json](http://localhost:8010/documentation/json) | Complete OpenAPI JSON specification. |
+| 💬 **WhatsApp Webhook Endpoint** | `POST http://localhost:8010/whatsapp/webhook` | Incoming Meta/Twilio message receiver. |
 | ✉️ **Mailpit Email Inbox** | [http://localhost:8026](http://localhost:8026) | Visual web dashboard capturing all outgoing dev emails. |
 | 📊 **Prometheus Metrics Endpoint** | [http://localhost:9095/metrics](http://localhost:9095/metrics) | Live metric telemetry for Prometheus scraping. |
 
 ---
 
-## 7.6 Testing & Health Verification Commands
+## 7.7 Testing & Health Verification Commands
 
 ### Execute TypeScript Build Verification
 
@@ -152,7 +199,7 @@ curl -i http://localhost:8010/health/readiness
 
 ---
 
-## 7.7 Operational Troubleshooting Playbook
+## 7.8 Operational Troubleshooting Playbook
 
 ### Problem A: Database Connection Refused (`P1001`)
 - **Symptom**: `PrismaClientInitializationError: Can't reach database server at postgres:5432`.
@@ -172,13 +219,17 @@ curl -i http://localhost:8010/health/readiness
   docker exec -it riverbank_redis_1 redis-cli DEL "lock:wallet:123"
   ```
 
-### Problem C: Invalid Token Claims (`401 Unauthorized`)
+### Problem C: WhatsApp 403 Invalid Webhook Signature
+- **Symptom**: `HTTP 403 Forbidden: Invalid HMAC signature`.
+- **Solution**: Verify that `WHATSAPP_APP_SECRET` in `.env` matches the App Secret in the Meta App Dashboard, or verify `TWILIO_AUTH_TOKEN` when using the Twilio provider.
+
+### Problem D: Invalid Token Claims (`401 Unauthorized`)
 - **Symptom**: `Token has been revoked or has invalid version`.
 - **Solution**: The user's `jwt_version` in `river_brand_sys_user_session_control` was incremented due to a password reset. Re-authenticate via `POST /auth/login` to obtain a fresh JWT containing the updated `jv` claim.
 
 ---
 
-## 7.8 Summary
+## 7.9 Summary
 
 This manual provides developers and SREs with complete operational control to install, migrate, run, document, observe, and troubleshoot the Riverbrand Enterprise Digital Banking Platform.
 

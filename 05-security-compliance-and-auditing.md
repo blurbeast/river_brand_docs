@@ -91,11 +91,50 @@ The platform maintains two distinct authorization factors:
 ### 2. Transaction PIN Hashing (`src/utils/pinSecurity.ts`)
 - Requires a secret 4-digit numeric PIN for high-risk operations (transfers, bill payments, Safelock liquidations).
 - Hashed independently of the account password using bcrypt with salt rounds.
-- Blocked after 3 consecutive invalid attempts for 30 minutes to mitigate brute-force guessing.
+- **WhatsApp & Mobile Lockout Guard**: Blocked after 3 consecutive invalid attempts for 30 minutes in Redis (`wa:lockout:{phone}`) to mitigate brute-force guessing.
 
 ---
 
-## 5.4 Multi-Channel OTP Architecture
+## 5.4 WhatsApp Webhook Security & Cryptographic Verification
+
+Because WhatsApp webhooks handle incoming financial commands and sensitive personal data, Riverbrand enforces strict cryptographic signature verification on every incoming HTTP payload (`src/whatsapp-banking/`):
+
+```
+[Inbound Webhook Request] ──► [Fastify Pre-Handler Hook]
+                                       │
+                                       ▼
+                     ┌───────────────────────────────────┐
+                     │ Evaluate Provider-Specific Secret │
+                     └───────────────────────────────────┘
+                                       │
+            ┌──────────────────────────┴──────────────────────────┐
+            ▼                                                     ▼
+ [Meta Webhook Request]                                [Twilio Webhook Request]
+ • Header: `x-hub-signature-256`                       • Header: `X-Twilio-Signature`
+ • Algorithm: HMAC-SHA256(payload, APP_SECRET)         • Algorithm: HMAC-SHA1(url + params, AUTH_TOKEN)
+            │                                                     │
+            └──────────────────────────┬──────────────────────────┘
+                                       │
+                                       ▼
+                     ┌───────────────────────────────────┐
+                     │ Match Computed Hash == Header?    │
+                     └───────────────────────────────────┘
+                                       │
+                     ├──► [MATCH]   ──► [Process Banking Logic]
+                     │
+                     └──► [MISMATCH] ─► [Reject HTTP 403 Forbidden]
+```
+
+### 1. Meta Webhook Verification (`MetaWhatsAppProvider.ts`)
+- **Subscription Handshake**: Responds to Meta `GET /webhook` verification requests validating `hub.verify_token` against `WHATSAPP_VERIFY_TOKEN` and returning `hub.challenge`.
+- **Payload HMAC Verification**: Inbound `POST /webhook` messages compute `crypto.createHmac('sha256', APP_SECRET).update(rawBody).digest('hex')` and verify against `x-hub-signature-256`.
+
+### 2. Twilio Signature Verification (`TwilioWhatsAppProvider.ts`)
+- Inbound webhooks from Twilio validate the `X-Twilio-Signature` header using Twilio's cryptographic HMAC-SHA1 protocol.
+
+---
+
+## 5.5 Multi-Channel OTP Architecture
 
 One-Time Passwords (OTPs) are generated and delivered via multi-channel SMS and email infrastructure (`src/services/otp.ts` & `src/database/repository/riverbrandSmsOtp.ts`).
 
@@ -126,22 +165,22 @@ One-Time Passwords (OTPs) are generated and delivered via multi-channel SMS and 
 
 ---
 
-## 5.5 Non-Blocking Asynchronous Audit Logging
+## 5.6 Non-Blocking Asynchronous Audit Logging
 
 Compliance standards require comprehensive logging of user and administrative activities. To ensure audit logging never degrades HTTP endpoint response performance, audit entries are written asynchronously (`src/utils/auditLogger.ts`).
 
 ### Audit Log Tables Architecture
 
 1. **`audit_user_activity`**: Captures retail customer actions:
-   - `user_id`, `action` (e.g., `USER_LOGIN`, `PASSWORD_CHANGE`, `TRANSFER_INITIATED`), `ip_address`, `user_agent`, `payload_before`, `payload_after`, `created_at`.
+   - `user_id`, `action` (e.g., `USER_LOGIN`, `PASSWORD_CHANGE`, `TRANSFER_INITIATED`, `WHATSAPP_TRANSFER`), `ip_address`, `user_agent`, `payload_before`, `payload_after`, `created_at`.
 2. **`audit_admin_action`**: Captures staff console operations:
    - `admin_id`, `action` (e.g., `USER_SUSPENDED`, `TIER_UPGRADED`), `target_user_id`, `changes`, `ip_address`, `created_at`.
 3. **`audit_system_event`**: Captures core system events:
-   - `event_name` (e.g., `OUTBOX_FLUSH`, `RECONCILIATION_JOB`), `provider`, `status`, `metadata`, `created_at`.
+   - `event_name` (e.g., `OUTBOX_FLUSH`, `RECONCILIATION_JOB`, `WHATSAPP_DISPATCH_FAILURE`), `provider`, `status`, `metadata`, `created_at`.
 
 ---
 
-## 5.6 Role-Based Access Control (RBAC) Permission Matrix
+## 5.7 Role-Based Access Control (RBAC) Permission Matrix
 
 Staff administrative access is strictly governed by a granular Role-Based Access Control matrix (`sys_roles`, `sys_permissions`, `sys_role_permissions`, `sys_user_roles`).
 
@@ -156,8 +195,8 @@ Staff administrative access is strictly governed by a granular Role-Based Access
 
 ---
 
-## 5.7 Summary
+## 5.8 Summary
 
-Riverbrand's security framework delivers end-to-end protection through Dual-Token headers, sidecar JWT version revocation, Argon2id/bcrypt hashing, failover SMS OTPs, non-blocking audit logging, and strict RBAC authorization.
+Riverbrand's security framework delivers end-to-end protection through Dual-Token headers, sidecar JWT version revocation, Argon2id/bcrypt hashing, WhatsApp HMAC webhook authentication, failover SMS OTPs, non-blocking audit logging, and strict RBAC authorization.
 
 *Next Chapter: [06. Future Strategic Upgrade Roadmap](./06-future-upgrade-roadmap.md) — How It Can Be Upgraded (Strategic Architectural & Enterprise Evolution Plan).*

@@ -151,34 +151,74 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.7 Category F: Communication & Messaging Services
+## 8.7 Category F: Communication, WhatsApp & Messaging Services
 
 ### 24. `WhatsAppBankingService` (`src/whatsapp-banking/services/WhatsAppBankingService.ts`)
-- **Business Purpose**: Meta Graph API webhook handler, conversational state machine, phone pairing, and secure PIN execution over WhatsApp chat.
+- **Business Purpose**: Core conversational banking orchestrator. Receives normalized inbound messages from `WhatsAppController`, queries/updates Redis conversational state via `WhatsAppSessionService`, pairs sender phone numbers to `user_user` accounts, and delegates input execution to specialized domain step handlers.
+- **Key Methods**:
+  - `handleIncomingMessage(parsedMessage: ParsedWhatsAppMessage)`: Ingestion pipeline that deduplicates message IDs, checks 30-minute brute-force lockout status, maps phone numbers to verified database users, detects global navigation keywords (`HI`, `MENU`, `CANCEL`, `RESET`), and dispatches to registered `stepHandlers`.
+  - `handleIdleStep(to: string, command: string, session: WhatsAppUserSession)`: Renders contextual interactive menus based on authentication status (Guest Onboarding Menu vs Authenticated Dashboard Menu).
+- **Database Tables**: `user_user`, `Wallet`, `userAccountDetails`.
+- **Cache**: Redis (`wa:session:*`, `wa:lockout:*`, `wa:msg:*`).
 
-### 25. `PushNotificationService` (`src/services/PushNotificationService.ts`)
+### 25. `WhatsAppSessionService` (`src/whatsapp-banking/services/WhatsAppSessionService.ts`)
+- **Business Purpose**: Manages in-memory stateful conversational sessions across WhatsApp chat turns without database overhead.
+- **Key Methods**:
+  - `getSession(phoneNumber: string)`: Retrieves or initializes `WhatsAppUserSession` with 30-minute TTL.
+  - `saveSession(session: WhatsAppUserSession)`: Persists step state, dynamic step data (`sessionData`), and updates TTL.
+  - `isDuplicateMessage(messageId: string)`: Deduplicates webhook retries using 24-hour Redis key markers.
+  - `recordFailedPinAttempt(phoneNumber: string)`: Increments failed attempt counter; triggers 30-minute lockout when count reaches 3.
+  - `clearSession(phoneNumber: string)`: Resets session back to `WhatsAppStep.IDLE`.
+
+### 26. `WhatsAppResponseService` (`src/whatsapp-banking/services/WhatsAppResponseService.ts`)
+- **Business Purpose**: Visual and interactive message formatting engine for WhatsApp.
+- **Key Methods**:
+  - `sendInteractiveButtons(to, bodyText, buttons, footerText)`: Sends WhatsApp interactive button message cards.
+  - `sendInteractiveList(to, title, bodyText, buttonText, sections)`: Sends multi-section selectable list menus (e.g. bank lists, telco plans).
+  - `sendTopLevelMenu(to, userFullName, isAuthenticated)`: Generates dynamic home screen menus with emoji headers.
+  - `sendReceiptCard(to, receiptDetails)`: Generates clean monospaced financial receipt cards.
+
+### 27. `WhatsAppProviderFactory` (`src/whatsapp-banking/providers/WhatsAppProviderFactory.ts`)
+- **Business Purpose**: Dependency Injection factory dynamically resolving the active WhatsApp gateway adapter (`IWhatsAppProvider`) based on environment configuration (`meta`, `twilio`, `termii`, `wati`, `interakt`, `360dialog`).
+
+### 28. `WhatsAppRegistrationHandler` (`src/whatsapp-banking/services/handlers/WhatsAppRegistrationHandler.ts`)
+- **Business Purpose**: End-to-end chat onboarding workflow. Captures customer name, dispatches and validates email OTP, verifies BVN with Dojah, captures photo selfie, hashes secret 4-digit transaction PIN, and triggers automatic Providus/Fincra NUBAN provisioning.
+
+### 29. `WhatsAppTransferHandler` (`src/whatsapp-banking/services/handlers/WhatsAppTransferHandler.ts`)
+- **Business Purpose**: Conversational money movement. Manages NUBAN account entry, live bank account name resolution, multi-currency wallet selection (NGN, USD, EUR, GBP), PIN authorization, distributed `Redlock` acquisition, and atomic ledger execution.
+
+### 30. `WhatsAppAirtimeHandler` (`src/whatsapp-banking/services/handlers/WhatsAppAirtimeHandler.ts`)
+- **Business Purpose**: Chat-based mobile top-up and data bundle purchase across MTN, Airtel, Glo, and 9mobile with PIN authentication.
+
+### 31. `WhatsAppBillPaymentHandler` (`src/whatsapp-banking/services/handlers/WhatsAppBillPaymentHandler.ts`)
+- **Business Purpose**: Utility bill payments (Electricity prepaid token generation, postpaid settlement, DSTV/GOTV smartcard renewals).
+
+### 32. `WhatsAppKycHandler` (`src/whatsapp-banking/services/handlers/WhatsAppKycHandler.ts`)
+- **Business Purpose**: Chat-based KYC verification (NIN submission, selfie document capture) and real-time multi-currency wallet balance inquiries.
+
+### 33. `PushNotificationService` (`src/services/PushNotificationService.ts`)
 - **Business Purpose**: FCM multi-platform push notification dispatcher with self-healing invalidation on app uninstalls (`sys_device_tokens`).
 
-### 26. `DeviceTokenService` (`src/services/DeviceTokenService.ts`)
+### 34. `DeviceTokenService` (`src/services/DeviceTokenService.ts`)
 - **Business Purpose**: Multi-device FCM token registration across iOS, Android, and Web platforms.
 
-### 27. `NotificationService` (`src/services/notification.ts`)
+### 35. `NotificationService` (`src/services/notification.ts`)
 - **Business Purpose**: In-app inbox notifications and dispute ticket submissions.
 
-### 28. `AlertDispatcherService` (`src/services/alerting/AlertDispatcherService.ts`)
+### 36. `AlertDispatcherService` (`src/services/alerting/AlertDispatcherService.ts`)
 - **Business Purpose**: Pluggable alert dispatcher for broadcasting platform alerts to Slack, Email, and Webhook receivers.
 
 ---
 
 ## 8.8 Category G: Governance & Observability Services
 
-### 29. `AdminService` (`src/services/AdminService.ts`) & `AdminAccountService` (`src/services/adminAccount.ts`)
+### 37. `AdminService` (`src/services/AdminService.ts`) & `AdminAccountService` (`src/services/adminAccount.ts`)
 - **Business Purpose**: Executive platform dashboard metrics, user suspension/unsuspension, and financial liability stats.
 
-### 30. `MetricsService` (`src/services/metrics/metricsService.ts`)
+### 38. `MetricsService` (`src/services/metrics/metricsService.ts`)
 - **Business Purpose**: Prometheus counter, gauge, and histogram metric collection (`prom-client`) served on port `9095`.
 
-### 31. `HealthCheckService` (`src/services/health/healthCheckService.ts`)
+### 39. `HealthCheckService` (`src/services/health/healthCheckService.ts`)
 - **Business Purpose**: System health diagnostics pinging PostgreSQL, Redis, Mailpit SMTP, and Outbox queues (`/health/liveness` & `/health/readiness`).
 
 ---
@@ -195,7 +235,10 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 | **`TransactionService`** | `payment_transaction` | Interbank Clearing | Reference Idempotency |
 | **`SavingsService`** | `Target`, `savings_config` | None | Daily Compound Yield Math |
 | **`KycService`** | `user_user` | Dojah Gateway / Mono API | BVN & NIN Verification |
-| **`WhatsAppBankingService`** | `user_user`, `Wallet` | Meta Graph API | HMAC Signature + PIN Auth |
+| **`WhatsAppBankingService`** | `user_user`, `Wallet` | Meta / Twilio / Termii / WATI | HMAC Signature + PIN Auth |
+| **`WhatsAppSessionService`** | Redis (`wa:session:*`) | In-Memory Redis 7 | 30m TTL + 3-Attempt Lockout |
+| **`WhatsAppTransferHandler`** | `Wallet`, `Transaction` | Interbank Clearing | Distributed Redlock + PIN |
+| **`WhatsAppRegistrationHandler`** | `user_user`, `userAccountDetails` | Dojah / Providus / Fincra | OTP Email + BVN Match |
 | **`PushNotificationService`** | `sys_device_tokens` | Google Firebase FCM | Self-Healing Token Invalidation |
 
 *End of Chapter 8 Backend Service Catalog.*
