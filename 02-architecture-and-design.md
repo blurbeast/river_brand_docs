@@ -1,13 +1,33 @@
 # 📄 Chapter 2: Technical Architecture & System Topology
 
-> **"How We Achieved It"**  
-> *Technical System Architecture, Pluggable Provider Design, Low-Latency Engineering, PgBouncer Connection Pooling, Prisma Read Replicas & Event Infrastructure.*
+> **"How We Built It: Low-Latency, Resilient & Pluggable"**  
+> *A comprehensive engineering blueprint detailing the modular architecture, PgBouncer connection multiplexing, Prisma read-replica routing, pluggable provider design, and transactional event infrastructure.*
 
 ---
 
-## 2.1 Technology Stack & Architectural Rationale
+## 2.1 The "Learn, Unlearn, Relearn" Guide to Banking Architecture
 
-The Riverbrand Enterprise Digital Banking Engine (`RiverbrandBE`) is built on a high-throughput, non-blocking asynchronous architecture engineered specifically for financial technology systems.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🚫 UNLEARN: "Microservices from Day 1 is the only way to build high-scale." │
+│ Splitting into 20 microservices prematurely introduces network latency,     │
+│ distributed transaction hell, and immense operational debugging friction.   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 💡 LEARN: "A cleanly decoupled Modular Monolith gives maximum speed & sanity"│
+│ TypeDI Dependency Injection, bounded service domains, and strict internal   │
+│ contracts allow you to run 10,000+ RPS on a single optimized cluster.      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🚀 RELEARN & MASTER: "Riverbrand uses a Pluggable Modular Architecture."    │
+│ Every external dependency (WhatsApp, Cards, SMS, Mail) is a swappable      │
+│ provider interface. Domain services emit async events to an Outbox relay.   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2.2 Technology Stack & Architectural Topology
+
+The Riverbrand Banking Engine (`RiverbrandBE`) is built on a high-throughput, non-blocking asynchronous architecture engineered specifically for financial technology systems.
 
 ![Technical High-Level Architecture](./images/technical-high-level-architecture.png)
 
@@ -54,33 +74,32 @@ The Riverbrand Enterprise Digital Banking Engine (`RiverbrandBE`) is built on a 
 
 ---
 
-## 2.2 PostgreSQL Connection Architecture: PgBouncer & Read Replicas
+## 2.3 Database Connection Architecture: PgBouncer & Read Replicas
 
-### 1. Does Riverbrand Use Database Connections?
-**Yes, absolutely.** Riverbrand relies on PostgreSQL 15 as its core relational persistence engine. 
-- Every API endpoint that handles authentication, wallet balances, money transfers, or bill payments communicates with PostgreSQL via **Prisma ORM 5.x**.
-- When the Fastify server starts up (`src/index.ts`), Prisma establishes an active database connection pool.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 MENTAL MODEL: The Bank Lobby vs. The VIP Concierge                       │
+│                                                                             │
+│ • Without PgBouncer: 5,000 customers burst into the lobby at once, each     │
+│   demanding a dedicated bank clerk. The room runs out of oxygen (RAM        │
+│   exhaustion) and crashes the bank.                                         │
+│ • With PgBouncer: A sharp concierge at the door lets 5,000 requests queue   │
+│   in milliseconds, serving them across 50 ultra-fast clerk desks.           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-### 2. Why PgBouncer is Specific to PostgreSQL
-You correctly identified that **PgBouncer is a specialized proxy built specifically for PostgreSQL**. Here is why PostgreSQL requires PgBouncer:
+### 1. Why PgBouncer is Specific to PostgreSQL
+Unlike MySQL (which uses lightweight threads per connection), PostgreSQL spawns a **full OS Process (`fork()`)** for each connection. Each process consumes **8 MB to 10 MB of RAM**.
+- 5,000 direct connections = **50 GB RAM wasted on idle connections alone**.
+- PgBouncer runs on port `6432` in transaction pooling mode (`pgbouncer=true`). Prisma communicates through PgBouncer as if it were PostgreSQL, maintaining thousands of client sessions on a lean pool of 50 physical connections.
 
-- **The Process Architecture of PostgreSQL**: Unlike MySQL or Microsoft SQL Server (which use lightweight internal threads for connections), PostgreSQL spawns a **full Operating System Process (`fork()`)** for every client connection. Each connection process consumes **8 MB to 10 MB of RAM** and requires CPU context switching.
-- **The Problem**: If 5,000 Fastify app instances or worker threads open direct connections to PostgreSQL, PostgreSQL is forced to run 5,000 heavy OS processes, consuming **50 GB of RAM** just to maintain idle connections!
-- **The PgBouncer Solution**: PgBouncer sits between Riverbrand's Node.js application and PostgreSQL on port `6432`. To Prisma, PgBouncer looks exactly like PostgreSQL. But behind the scenes, PgBouncer maintains a tiny pool of **50 actual OS connections** to PostgreSQL. As 5,000 incoming queries arrive from Node.js, PgBouncer routes them through the 50 pooled connections in transaction mode (`pgbouncer=true`).
-
-#### Prisma Connection String with PgBouncer (`.env`)
 ```env
 # Connection String via PgBouncer Pooler (Transaction Mode)
 DATABASE_URL="postgresql://riverbrand:secret@pgbouncer:6432/riverbank_prod_db?schema=public&pgbouncer=true&connection_limit=50"
 ```
 
----
-
-### 3. How Read Replicas (DB Read Mirrors) Work in Riverbrand
-
-In digital banking, **85% of database queries are Read operations** (checking balance, viewing transaction receipts, fetching user profile), while **15% are Write operations** (wallet debits, credits, transfers).
-
-To prevent read queries from slowing down money transfers, we split PostgreSQL into a **Primary Master (R/W)** and **Read Replica Mirrors (RO)**:
+### 2. Read Replicas: The Master Vault vs. The Display Mirrors
+In digital banking, **85% of database queries are Read operations** (checking balances, fetching transaction receipts), while **15% are Write operations** (debits, credits, transfers).
 
 ```
 [Fastify Node.js Application]
@@ -92,8 +111,7 @@ To prevent read queries from slowing down money transfers, we split PostgreSQL i
              └──► Reads (SELECT balance, SELECT profile)  ──────► 🪞 Read Replica Mirrors (RO)
 ```
 
-#### Configuring Read Replicas in Prisma ORM (`src/database/index.ts`)
-Using the `@prisma/extension-read-replicas` extension, Prisma automatically routes writes to the Primary Master DB and reads to the Replica Mirrors:
+Prisma automatically routes writes to the Primary DB and reads to the Replica Mirrors using `@prisma/extension-read-replicas`:
 
 ```typescript
 import { PrismaClient } from '@prisma/client';
@@ -111,113 +129,83 @@ export const prisma = basePrisma.$extends(
 );
 ```
 
-- **Automatic Query Routing**: When code executes `prisma.wallet.update({ ... })` or `prisma.$transaction(...)`, Prisma routes the query to the **Primary Master DB**.
-- When code executes `prisma.wallet.findUnique({ ... })` or `prisma.transaction.findMany({ ... })`, Prisma routes the query to **Read Replica Mirrors**, ensuring balance checks never slow down money transfers!
-
 ---
 
-## 2.3 Pluggable Architecture & Low-Latency Execution Flow
+## 2.4 Low-Level Technical Execution Flow
 
-Rather than tightly coupling business rules directly to specific vendors (e.g. tying money transfers directly to a single card processor or SMS vendor), Riverbrand implements a **Pluggable Modular Design**.
-
-![Pluggable Low-Latency Architecture](./images/pluggable-architecture.png)
-
-### Low-Level Technical Execution Flow
-
-The diagram below maps the precise low-level sequence of an incoming request or webhook: from HMAC cryptographic verification, to Redis session state validation, sidecar JWT version checks, distributed Redlock acquisition, PostgreSQL `$transaction` ACID isolation, and decoupled outbox/event relaying:
+The diagram below traces an incoming financial request from signature verification to atomic execution and asynchronous notification relay:
 
 ![Technical Low-Level Flow](./images/technical-low-level-flow.png)
 
-### 1. Deep Technical Implementation Patterns
-
-#### A. Multi-Provider WhatsApp Gateway Factory (`src/whatsapp-banking/providers/`)
-- Unified interface `IWhatsAppProvider` defines standard methods: `parseIncomingWebhook`, `sendTextMessage`, `sendInteractiveButtons`, `sendInteractiveList`, `sendFlowMessage`, and `verifyWebhookSignature`.
-- `WhatsAppProviderFactory` dynamically instantiates and injects the active provider based on configuration (`environment.whatsapp.provider`):
-  - **MetaWhatsAppProvider**: Direct Meta Graph API v18+ with SHA-256 HMAC verification.
-  - **TwilioWhatsAppProvider**: Twilio Programmable Messaging API with `X-Twilio-Signature` auth.
-  - **TermiiWhatsAppProvider**: Termii WhatsApp API tailored for Nigerian telecommunications.
-  - **WatiWhatsAppProvider**: WATI CRM and conversational endpoints.
-  - **InteraktWhatsAppProvider**: Interakt BSP integration.
-  - **ThreeSixtyDialogProvider**: 360dialog high-throughput WhatsApp Cloud API adapter.
-
-#### B. Provider Factory & Strategy Pattern for Payments (`src/providers/`)
-- Payment cards and virtual accounts use factory abstractions (`cardProviderFactory.ts`).
-- Core services consume standard interfaces (`ICardProvider`, `IPaymentProvider`). If Flutterwave fails or a new provider like Fincra or Providus is added, `cardProviderFactory` dynamically routes requests based on configuration without changing business service code.
-
-#### C. Pluggable Multi-Driver Mailer & SMS Failover (`src/utils/mailing/` & `src/utils/sms/`)
-- The mailer service (`Mailer.ts`) supports dynamic fallback chains: `SendGridDriver` ➔ `BrevoDriver` ➔ `SmtpDriver (Mailpit)`.
-- SMS OTP routing (`src/utils/sms/index.ts`) evaluates provider availability dynamically between Termii and Twilio.
-
-#### D. Pluggable Alert Dispatcher (`src/services/alerting/`)
-- The alert service (`AlertDispatcherService.ts`) maintains a registry of receivers implementing `IAlertReceiver`.
-- Alerts are broadcast concurrently to `SlackAlertReceiver`, `EmailAlertReceiver`, and `GenericWebhookAlertReceiver` without tightly binding alerting logic to HTTP route handlers.
-
-#### E. Decoupled In-Memory Event Bus (`src/events/EventBus.ts`)
-- Domain events (`UserRegistered`, `KycTierUpgraded`, `VirtualAccountCreated`, `P2PTransferDebited`) are emitted asynchronously.
-- Event handlers in `src/events/handlers/` listen to events independently, allowing background tasks (e.g. sending WhatsApp onboarding messages, releasing pending balances, dispatching push notifications) to be plugged in with zero code modifications to core controllers.
-
-### 2. Low-Latency Engineering Performance Pillars
-
-| Low-Latency Pillar | Implementation Detail | Performance Benefit |
-| :--- | :--- | :--- |
-| **Fastify JIT Schema Compilation** | Fastify pre-compiles Ajv JSON validation schemas into optimized JS functions at startup. | Eliminates JSON parsing overhead, reducing route resolution latency to sub-milliseconds. |
-| **In-Memory Redis Token Bucket & State** | Rate limiting (`TokenBucketRateLimiter`), lock checks (`Redlock`), and conversational session state execute in Redis memory. | Evaluates incoming request authorization and chat steps in under 2 milliseconds without hitting database disk I/O. |
-| **Asynchronous Non-Blocking I/O** | Audit logs, outbox inserts, push notifications, and emails execute asynchronously outside the primary HTTP response loop. | Returns HTTP `200 OK` responses immediately to mobile app and WhatsApp webhook users without waiting for third-party network calls. |
+```
+[1. INCOMING REQUEST] 
+       │
+       ▼
+[2. CLIENT & HMAC AUTH] ──► (Invalid Signature? ──► Return 401 Unauthorized)
+       │
+       ▼
+[3. REDIS RATE LIMIT] ──► (Bucket Exhausted? ──► Return 429 Too Many Requests)
+       │
+       ▼
+[4. SIDECAR JWT VERSION] ──► (Version Mismatch? ──► Return 401 Session Revoked)
+       │
+       ▼
+[5. REDIS REDLOCK] ──► (Acquire lock:wallet:{id} ──► Busy? Return 409 Conflict)
+       │
+       ▼
+[6. POSTGRESQL $TRANSACTION]
+       ├── Validate Balance >= Debit Amount
+       ├── Decrement Source Wallet Balance
+       ├── Increment Destination Wallet Balance
+       ├── Insert Double-Entry Ledger Record
+       └── Insert Outbox Event (Status: PENDING)
+       │
+       ▼
+[7. RELEASE REDLOCK]
+       │
+       ▼
+[8. RETURN 200 OK TO USER] 
+       │
+       ▼ (Asynchronous Background Execution)
+[9. OUTBOX WORKER RELAY] ──► Send WhatsApp Message / Push Alert / Email Receipt
+```
 
 ---
 
-## 2.4 Tri-Channel Client Layer: Native Mobile, Web Portal & WhatsApp
+## 2.5 Pluggable Provider Architecture
 
-RiverbrandBE is engineered to serve three distinct client channels through a unified API architecture with tailored authentication, session handling, and payload optimization:
+Riverbrand isolates all third-party dependencies behind strict TypeScript interfaces:
 
-```
-                      ┌─────────────────────────────────────────┐
-                      │        RIVERBRAND FASTIFY ENGINE        │
-                      └─────────────────────────────────────────┘
-                                           │
-           ┌───────────────────────────────┼───────────────────────────────┐
-           ▼                               ▼                               ▼
-┌─────────────────────┐         ┌─────────────────────┐         ┌─────────────────────┐
-│ 📱 NATIVE MOBILE APP│         │ 💻 WEB APP & ADMIN  │         │ 💬 WHATSAPP ENGINE  │
-│   (iOS & Android)   │         │  (Customer & Admin) │         │ (Conversational AI) │
-├─────────────────────┤         ├─────────────────────┤         ├─────────────────────┤
-│ • Header:           │         │ • Header:           │         │ • Webhooks:         │
-│   `x-local-access-  │         │   `x-web-access-    │         │   `x-hub-signature` │
-│    token`           │         │    token`           │         │   `X-Twilio-Sig`    │
-│ • Long-lived refresh│         │ • Short 15m session │         │ • Redis 30m TTL     │
-│ • Biometric / FaceID│         │ • Granular RBAC     │         │ • 4-Digit PIN Auth  │
-│ • FCM Push Tokens   │         │ • Audit Trail       │         │ • 3-Attempt Lockout │
-│ • Card Tokenization │         │ • Financial Stats   │         │ • Interactive UI    │
-└─────────────────────┘         └─────────────────────┘         └─────────────────────┘
+![Pluggable Low-Latency Architecture](./images/pluggable-architecture.png)
+
+### 1. Multi-Provider WhatsApp Gateway (`src/whatsapp-banking/providers/`)
+All WhatsApp communication adheres to the `IWhatsAppProvider` interface:
+- **MetaWhatsAppProvider**: Direct Meta Graph API v18+ with SHA-256 HMAC signature validation.
+- **TwilioWhatsAppProvider**: Twilio Programmable Messaging API with `X-Twilio-Signature`.
+- **TermiiWhatsAppProvider**: Direct telco gateway for Nigerian telecommunications.
+- **WatiWhatsAppProvider**, **InteraktWhatsAppProvider**, **ThreeSixtyDialogProvider**: Enterprise BSP adapters.
+
+```typescript
+export interface IWhatsAppProvider {
+  parseIncomingWebhook(body: any, headers: Record<string, string>): Promise<IIncomingMessage>;
+  sendTextMessage(to: string, text: string): Promise<boolean>;
+  sendInteractiveButtons(to: string, header: string, body: string, buttons: IButtonOption[]): Promise<boolean>;
+  sendInteractiveList(to: string, title: string, sections: IListSection[]): Promise<boolean>;
+  verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean;
+}
 ```
 
-1. **📱 Native Mobile Application (iOS & Android)**:
-   - Authenticates via `x-local-access-token` (or `x-access-token` with `x-client-type: mobile`).
-   - Supports biometric Face ID / Touch ID hardware authentication.
-   - Saves debit cards via Flutterwave tokenization (`UserCard`) for instant in-app wallet funding.
-   - Uploads camera captures of identity documents and proof-of-address to S3/Cloudinary (`UserDocument`).
-   - Registers FCM push tokens (`sys_device_tokens`) for real-time push alerts on financial activities.
-2. **💻 Customer Web Portal & Enterprise Admin Console (Web App)**:
-   - Authenticates via `x-web-access-token` (or `x-access-token` with `x-client-type: web`).
-   - Short-lived browser access tokens with sidecar `jwt_version` instant revocation on password resets.
-   - Powers the complete Administrative Management Console:
-     - Real-time executive dashboard monitoring system liabilities, provider reserves, and active wallets.
-     - User governance (suspension, unsuspension, identity tier review).
-     - Granular Role-Based Access Control matrix (`sys_roles`, `sys_permissions`).
-     - Non-blocking audit trails (`audit_user_activity`, `audit_admin_action`, `audit_system_event`).
-3. **💬 WhatsApp Conversational Banking Engine (Chat Gateway)**:
-   - Authenticates inbound webhooks via cryptographic HMAC-SHA256 / SHA-1 signatures.
-   - Manages stateful conversational steps in Redis (`wa:session:*`).
-   - Protects financial operations with 4-digit PIN bcrypt validation and 3-attempt brute-force lockouts.
-   - Emits receipts and alerts directly into the WhatsApp conversation.
+### 2. Multi-Driver Email & SMS Routing (`src/utils/mailing/` & `src/utils/sms/`)
+- Dynamic failover chain: `SendGridDriver` ➔ `BrevoDriver` ➔ `SmtpDriver (Mailpit)`.
+- SMS OTP dynamically routes between Termii and Twilio based on provider health checks.
+
+### 3. Decoupled In-Memory Event Bus (`src/events/EventBus.ts`)
+- Domain events (`UserRegistered`, `KycTierUpgraded`, `VirtualAccountCreated`, `P2PTransferDebited`) are emitted asynchronously without blocking controllers.
+- Handlers in `src/events/handlers/` listen to events independently, keeping business controllers clean and decoupled.
 
 ---
 
-## 2.5 Modular Monolith Architecture
-
-The application is structured as a **Modular Monolith**. This architectural pattern provides the simplicity of a single deployable unit with the clean boundaries and modularity of microservices, making future microservice extraction straightforward when scale demands it.
-
-### Code Directory Topography
+## 2.6 Directory Structure & Code Topography
 
 ```
 RiverbrandBE/
@@ -231,7 +219,7 @@ RiverbrandBE/
 │   │   └── routes/                 # Fastify Modular Route Definitions
 │   ├── config/                     # Environment Variable Validation & Client Configs
 │   ├── database/                   # Persistence Layer
-│   │   ├── schema.prisma           # Complete Master Prisma Schema (2,150+ lines)
+│   │   ├── schema.prisma           # Master Prisma Schema (2,150+ lines)
 │   │   ├── repository/             # Data Access Layer & Repositories
 │   │   └── migrations/             # Standardized SQL Migration Files
 │   ├── events/                     # Event Bus System & Domain Event Handlers
@@ -249,35 +237,19 @@ RiverbrandBE/
 
 ---
 
-## 2.6 Database Schema & Relational Integrity
-
-The persistence model managed in `src/database/schema.prisma` contains over 60 relational models designed to maintain strict financial consistency while preserving backward compatibility with legacy data schemas.
-
-### Primary Domain Entity Relationships
-
-```mermaid
-erDiagram
-    user_user ||--o| river_brand_sys_user_session_control : "has sidecar session"
-    user_user ||--o| Wallet : "owns primary"
-    user_user ||--o{ userAccountDetails : "owns NUBAN accounts"
-    user_user ||--o{ Transaction : "executes ledger transactions"
-    user_user ||--o{ UserDocument : "uploads KYC verification docs"
-    user_user ||--o{ DeviceToken : "registers FCM push tokens"
-    user_user ||--o{ AuditUserActivity : "generates user activity logs"
-    
-    Wallet ||--o{ rbp_brand_pending_balance : "holds pending funds"
-    Target ||--o{ SavingsTransaction : "records savings deposits"
-    
-    Role ||--o{ RolePermission : "defines permissions"
-    UserRole }|--|| Role : "assigns role"
-    UserRole }|--|| user_user : "assigned to user"
-```
-
----
-
 ## 2.7 Transactional Outbox Pattern & Event Relay
 
-To solve the dual-write problem (where database updates succeed but external webhook notifications fail due to network glitches), Riverbrand uses the **Transactional Outbox Pattern**.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 MENTAL MODEL: The Guaranteed Postman                                     │
+│                                                                             │
+│ Problem: If we send money in PostgreSQL and then call WhatsApp API, what    │
+│ happens if the WhatsApp API is down? Money is sent, but receipt is lost.    │
+│ Solution: We save the outgoing message in the database in the SAME          │
+│ transaction as the money transfer. A background worker picks it up and      │
+│ retries until it is 100% delivered.                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ```
 [Business Operation] ──(Single DB Transaction)──► [Update Wallet Balance]
@@ -296,26 +268,19 @@ To solve the dual-write problem (where database updates succeed but external web
 
 ---
 
-## 2.8 Operational Observability & Metrics Infrastructure
+## 2.8 Observability & Prometheus Metrics
 
-Riverbrand embeds deep observability directly into the server pipeline using Prometheus metrics and Fastify hooks.
-
-### Metrics Infrastructure Components
-
-- **Metrics Service (`src/services/metrics/metricsService.ts`)**: Built on top of `prom-client`. Collects application metrics:
-  - `http_requests_total`: Counter tracking HTTP requests by method, route, and status code.
+Riverbrand embeds deep observability directly into the server pipeline:
+- **Dedicated Metrics Server (`src/services/metrics/metricsServer.ts`)**: Runs on isolated internal port `9095` serving `/metrics` for Prometheus scraping without exposing metrics to public internet clients.
+- **Key Metrics Tracked**:
+  - `http_requests_total`: Request counts by method, route, and status code.
   - `http_request_duration_seconds`: Histogram measuring API endpoint response latency percentiles (p50, p90, p99).
-  - `financial_transactions_total`: Counter tracking money movement events by type (`TRANSFER`, `BILL_PAYMENT`, `SAFELOCK`) and status.
+  - `financial_transactions_total`: Counter tracking money movement events by type and status.
   - `outbox_pending_events_count`: Gauge tracking pending event backlog in the outbox queue.
-- **Dedicated Metrics HTTP Server (`src/services/metrics/metricsServer.ts`)**: Runs on isolated internal port `9095` serving `/metrics` for Prometheus scraping without exposing metrics to public internet clients.
 - **Health Diagnostics Service (`src/services/health/healthCheckService.ts`)**:
-  - `/health/liveness`: Returns `200 OK` if Fastify event loop is responsive.
-  - `/health/readiness`: Performs active connectivity ping tests against PostgreSQL 15, Redis 7, Mailpit SMTP, and Outbox queues.
+  - `/health/liveness`: Returns `200 OK` if the Fastify event loop is responsive.
+  - `/health/readiness`: Performs active connectivity ping tests against PostgreSQL, Redis, Mailpit SMTP, and Outbox queues.
 
 ---
-
-## 2.9 Summary
-
-By combining PgBouncer connection pooling, Prisma read replica routing, pluggable provider interfaces, multi-provider WhatsApp architecture, TypeDI dependency injection, Fastify JIT compilation, and the Transactional Outbox pattern, Riverbrand achieves an ultra-low latency, scalable banking architecture.
 
 *Next Chapter: [03. Core Banking & Financial Engine](./03-core-banking-and-financial-engine.md) — Financial Ledger, Money Movement & Double-Spending Guard.*

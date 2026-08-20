@@ -5,7 +5,28 @@
 
 ---
 
-## 4.1 Wealth Management Engine: Safelock, Target Savings & AutoSave
+## 4.1 The "Learn, Unlearn, Relearn" Guide to Conversational Channels
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🚫 UNLEARN: "Building a WhatsApp bot is just a 2,000-line switch statement."│
+│ Storing conversational state in database rows or memory variables leads to  │
+│ slow response times, race conditions, dropped chats, and bot amnesia.       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 💡 LEARN: "Conversational banking is a distributed finite-state machine."   │
+│ Every user phone has an active state in Redis (`wa:session:{phone}`) with a │
+│ 30-minute rolling TTL, strict step transition enums, and message dedupe.    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🚀 RELEARN & MASTER: "Riverbrand's Multi-Provider Conversational Core"      │
+│ We abstract Meta, Twilio, Termii, and WATI behind `IWhatsAppProvider`.      │
+│ Inbound webhooks verify HMAC signatures, fetch session state, execute the   │
+│ domain handler, validate PIN via bcrypt, and reply with interactive buttons.│
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4.2 Wealth Management Engine: Safelock, Target Savings & AutoSave
 
 The wealth engine (`src/services/monetary/savings/savings.ts`) enables retail customers to save disciplined funds and earn competitive compounding interest yields while providing the platform with predictable liquidity reserves.
 
@@ -34,7 +55,7 @@ The wealth engine (`src/services/monetary/savings/savings.ts`) enables retail cu
 
 ---
 
-## 4.2 Multi-Provider WhatsApp Conversational Banking Engine
+## 4.3 Multi-Provider WhatsApp Conversational Banking Engine
 
 Riverbrand features an enterprise-grade conversational banking engine (`src/whatsapp-banking/`) designed with a **Pluggable Multi-Provider Architecture**. Rather than hardcoding the banking logic to a single WhatsApp BSP (Business Solution Provider), Riverbrand exposes a unified contract (`IWhatsAppProvider`) allowing dynamic runtime switching across providers.
 
@@ -84,7 +105,7 @@ graph TD
 
 ---
 
-## 4.3 Redis-Backed Conversational State Machine (`WhatsAppSessionService`)
+## 4.4 Redis-Backed Conversational State Machine (`WhatsAppSessionService`)
 
 Conversational banking requires tracking state across multiple chat interactions while maintaining low latency and zero database bloat. Riverbrand uses **Redis in-memory caching** (`src/whatsapp-banking/services/WhatsAppSessionService.ts`) to manage session lifecycles.
 
@@ -93,7 +114,7 @@ Conversational banking requires tracking state across multiple chat interactions
 ```typescript
 export interface WhatsAppUserSession {
   phoneNumber: string;                // e.g. "2348012345678"
-  step: WhatsAppStep;                 // Current conversational state
+  step: WhatsAppStep;                 // Current conversational state enum
   authenticated: boolean;             // True if phone maps to verified user
   userId?: string;                    // Linked database user_user ID
   userFullName?: string;              // Customer display name
@@ -112,9 +133,7 @@ export interface WhatsAppUserSession {
 
 ---
 
-## 4.4 Conversational Step Handlers Deep Dive
-
-The business logic is partitioned into dedicated domain handlers (`src/whatsapp-banking/services/handlers/`):
+## 4.5 Conversational Step Handlers Deep Dive
 
 ```
                                ┌───────────────────────────────────┐
@@ -168,34 +187,17 @@ Powers instant P2P and Interbank transfers:
 
 ---
 
-## 4.5 Dynamic Response Service (`WhatsAppResponseService`)
-
-The response builder (`src/whatsapp-banking/services/WhatsAppResponseService.ts`) handles rich visual formatting for WhatsApp:
-
-- **Interactive Quick-Reply Buttons**: Renders structured button cards (e.g. `[Transfer Money]`, `[Buy Airtime]`, `[Check Balance]`).
-- **Interactive List Sections**: Multi-row selection menus for banks, telcos, and utility providers.
-- **Meta WhatsApp Flows**: Supports JSON data exchanges (`/flow/data-exchange`) for complex multi-screen inputs.
-- **Rich Receipt Cards**: Formats transaction confirmation cards with timestamp, reference code, beneficiary details, and remaining wallet balance.
-
----
-
-## 4.6 Real-Time Event Bus & WhatsApp Alerts
-
-The in-memory event bus (`src/events/EventBus.ts`) connects core banking events directly to WhatsApp notifications:
+## 4.6 FCM Multi-Platform Push Notification Pipeline
 
 ```
-[Virtual Account Created] ────► [VirtualAccountCreatedHandler] ────► [Send WhatsApp NUBAN Welcome Card]
-[KYC Tier Upgraded]       ────► [KycTierUpgradedHandler]       ────► [Send WhatsApp Tier Alert + Release Holds]
-[Transaction Completed]   ────► [NotificationDispatchedHandler] ───► [Send Real-Time WhatsApp Receipt]
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 MENTAL MODEL: Self-Healing Push Registry                                 │
+│                                                                             │
+│ When an app is uninstalled, Google FCM returns `token-not-registered`.      │
+│ Instead of continuously spamming dead tokens, Riverbrand intercepts the     │
+│ error and sets `is_active = false`, saving bandwidth and CPU cycles!        │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## 4.7 FCM Multi-Platform Push Notification Pipeline
-
-The platform supports real-time push notifications across Android, iOS, and Web devices using Google Firebase Cloud Messaging (FCM) (`src/services/PushNotificationService.ts`).
-
-### Multi-Device Registration & Invalidation Architecture
 
 ```
 [Mobile / Web Client] ──► POST /user/device-token ──► [Save in `sys_device_tokens`]
@@ -217,32 +219,9 @@ The platform supports real-time push notifications across Android, iOS, and Web 
                                                                      [Auto-deactivate token (`is_active = false`)]
 ```
 
-### Push Token Data Model (`sys_device_tokens`)
-
-```prisma
-model DeviceToken {
-  id          BigInt             @id @default(autoincrement())
-  user_id     BigInt
-  token       String             @unique @db.VarChar(500)
-  platform    PushDevicePlatform @default(ANDROID) // WEB, IOS, ANDROID
-  device_id   String?            @db.VarChar(100)
-  app_version String?            @db.VarChar(50)
-  is_active   Boolean            @default(true)
-  created_at  DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime           @updatedAt @db.Timestamptz(6)
-
-  @@index([user_id, is_active])
-}
-```
-
-### Self-Healing Token Invalidation
-When an FCM push dispatch fails with an error code such as `messaging/registration-token-not-registered` or `messaging/invalid-registration-token` (indicating the user uninstalled the app or invalidated the token), `PushNotificationService` automatically sets `is_active = false` for that device token record. This prevents future wasted network calls and optimizes push delivery rates.
-
 ---
 
-## 4.8 Multi-Channel Notification Dispatcher
-
-The application includes a unified notification dispatcher (`src/events/handlers/NotificationDispatchedHandler.ts`) that orchestrates alerts across four concurrent channels:
+## 4.7 Multi-Channel Notification Matrix
 
 | Notification Channel | Delivery Mechanism | Fallback Handling |
 | :--- | :--- | :--- |
@@ -252,9 +231,5 @@ The application includes a unified notification dispatcher (`src/events/handlers
 | **In-App Notification Center** | `Notification` Table in Database | Persisted for in-app inbox display (`isRead = false`). |
 
 ---
-
-## 4.9 Summary
-
-By combining compounding Safelock yields, multi-provider WhatsApp conversational banking, Redis session state machines, and FCM self-healing push notifications, Riverbrand delivers a rich, highly resilient multi-channel digital banking experience.
 
 *Next Chapter: [05. Security, Revocation & Auditing](./05-security-compliance-and-auditing.md) — Dual-Token Security, Sidecar Revocation, RBAC & Audit Trails.*

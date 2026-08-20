@@ -5,9 +5,30 @@
 
 ---
 
-## 8.1 Overview & Service Architecture Map
+## 8.1 The "Learn, Unlearn, Relearn" Guide to Service Architecture
 
-The Riverbrand Enterprise Banking Platform consists of 31+ core domain services grouped into 7 functional categories. Every service is built using TypeScript strict typing, constructor-based Dependency Injection via `@Service()` (`typedi`), and isolated database access patterns.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🚫 UNLEARN: "Controllers should write SQL queries directly to tables."      │
+│ Bloating HTTP controllers with SQL queries creates unmaintainable code and  │
+│ makes testing and swapping external vendors nearly impossible.              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 💡 LEARN: "Services encapsulate pure business domain logic."                │
+│ Controllers handle HTTP validation, Services execute business rules and     │
+│ transactions, and Repositories handle database persistence.                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🚀 RELEARN & MASTER: "Riverbrand's Dependency-Injected Domain Services"    │
+│ We use TypeDI (`typedi`) for constructor-based Dependency Injection. Every │
+│ domain service (Auth, Ledger, Savings, WhatsApp, KYC) is isolated, testable,│
+│ and emits events asynchronously via the EventBus and Outbox Relay.          │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8.2 Overview & Service Architecture Map
+
+The Riverbrand Banking Platform consists of 31+ core domain services grouped into 7 functional categories:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -24,7 +45,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.2 Category A: Authentication & Security Services
+## 8.3 Category A: Authentication & Security Services
 
 ### 1. `AuthService` (`src/services/auth.ts`)
 - **Business Purpose**: Core authentication orchestrator managing user sign-up, sign-in validation, JWT access token generation, password resets, and sidecar session control.
@@ -61,7 +82,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.3 Category B: Core Financial & Wallet Engines
+## 8.4 Category B: Core Financial & Wallet Engines
 
 ### 6. `FinancialEngine` (`src/services/monetary/financialEngine.ts`)
 - **Business Purpose**: Master double-entry accounting engine handling low-level atomic ledger entries, balance additions, deductions, and cross-currency conversions.
@@ -98,7 +119,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.4 Category C: Payment & Transaction Services
+## 8.5 Category C: Payment & Transaction Services
 
 ### 12. `TransactionService` (`src/services/monetary/transaction/transaction.ts`)
 - **Business Purpose**: Interbank transfers, P2P transfers, transaction history queries, and receipt generation.
@@ -121,7 +142,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.5 Category D: Wealth & Investment Services
+## 8.6 Category D: Wealth & Investment Services
 
 ### 18. `SavingsService` (`src/services/monetary/savings/savings.ts`)
 - **Business Purpose**: Manages Safelock fixed deposits, Target Savings goals, AutoSave sweeps, and daily compounding interest accrual.
@@ -132,7 +153,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.6 Category E: KYC, Verification & User Services
+## 8.7 Category E: KYC, Verification & User Services
 
 ### 19. `UserService` (`src/services/user.ts`)
 - **Business Purpose**: User profile management, avatar uploads to S3/Cloudinary, address updates, and account deletion requests.
@@ -151,7 +172,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.7 Category F: Communication, WhatsApp & Messaging Services
+## 8.8 Category F: Communication, WhatsApp & Messaging Services
 
 ### 24. `WhatsAppBankingService` (`src/whatsapp-banking/services/WhatsAppBankingService.ts`)
 - **Business Purpose**: Core conversational banking orchestrator. Receives normalized inbound messages from `WhatsAppController`, queries/updates Redis conversational state via `WhatsAppSessionService`, pairs sender phone numbers to `user_user` accounts, and delegates input execution to specialized domain step handlers.
@@ -210,7 +231,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.8 Category G: Governance & Observability Services
+## 8.9 Category G: Governance & Observability Services
 
 ### 37. `AdminService` (`src/services/AdminService.ts`) & `AdminAccountService` (`src/services/adminAccount.ts`)
 - **Business Purpose**: Executive platform dashboard metrics, user suspension/unsuspension, and financial liability stats.
@@ -223,7 +244,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 
 ---
 
-## 8.9 Summary Matrix: Services & Dependencies
+## 8.10 Summary Matrix: Services & Dependencies
 
 | Service Name | Primary Model / Table | External Gateway Dependency | Key Security Mechanism |
 | :--- | :--- | :--- | :--- |
@@ -240,5 +261,7 @@ The Riverbrand Enterprise Banking Platform consists of 31+ core domain services 
 | **`WhatsAppTransferHandler`** | `Wallet`, `Transaction` | Interbank Clearing | Distributed Redlock + PIN |
 | **`WhatsAppRegistrationHandler`** | `user_user`, `userAccountDetails` | Dojah / Providus / Fincra | OTP Email + BVN Match |
 | **`PushNotificationService`** | `sys_device_tokens` | Google Firebase FCM | Self-Healing Token Invalidation |
+
+---
 
 *End of Chapter 8 Backend Service Catalog.*

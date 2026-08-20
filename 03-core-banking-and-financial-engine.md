@@ -5,11 +5,29 @@
 
 ---
 
-## 3.1 Double-Spending Prevention & Atomic Balance Locking
+## 3.1 The "Learn, Unlearn, Relearn" Guide to Money Movement
 
-In high-volume digital banking applications, race conditions pose a severe threat. For instance, if a user with ₦10,000 in their wallet submits two concurrent transfer requests of ₦10,000 simultaneously from two devices, a naive system without concurrency controls could process both requests, leading to a negative balance of -₦10,000 and institutional loss.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🚫 UNLEARN: "A database transaction alone is enough to stop double spending"│
+│ If a user clicks 'Transfer ₦10k' from two phone tabs at the exact same     │
+│ millisecond, both read `balance = ₦10k` before either commits, leading to   │
+│ negative balances and irreversible bank loss.                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 💡 LEARN: "Concurrency in distributed systems requires two layers of guards"│
+│ Layer 1: Distributed lock in memory (Redis Redlock) to serialize requests.  │
+│ Layer 2: ACID row-level locking & single-commit database transactions.      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🚀 RELEARN & MASTER: "Riverbrand's Quantum Ledger Engine"                   │
+│ Every debit acquires a 10s Redis mutex lock on `lock:wallet:{walletId}`,    │
+│ validates daily limits, mutates balance, writes double-entry ledger rows,   │
+│ queues the outbox event, and commits in one atomic step.                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-Riverbrand guarantees **zero double-spending** and **strict double-entry balance integrity** using a two-tier locking strategy:
+---
+
+## 3.2 Double-Spending Prevention & Atomic Balance Locking
 
 ```
 [Incoming Debit Request] 
@@ -25,34 +43,36 @@ Riverbrand guarantees **zero double-spending** and **strict double-entry balance
          │          ▼
          │  ┌──────────────────────────────────────────────────────────┐
          │  │ TIER 2: Database Isolation Transaction ($transaction)    │
-         │  │  1. SELECT balance FROM "Wallet" WHERE id = walletId;   │
-         │  │  2. Verify: balance >= debitAmount                      │
-         │  │  3. UPDATE "Wallet" SET balance = balance - debitAmount │
-         │  │  4. INSERT INTO "transactions" (...)                    │
-         │  │  5. COMMIT TRANSACTION                                  │
+         │  │  1. Check Daily Limit: totalDebits + amount <= limit     │
+         │  │  2. SELECT balance FROM "Wallet" WHERE id = walletId;   │
+         │  │  3. Verify: balance >= debitAmount                      │
+         │  │  4. UPDATE "Wallet" SET balance = balance - debitAmount │
+         │  │  5. INSERT INTO "transactions" (...)                    │
+         │  │  6. INSERT INTO "outbox" (...)                          │
+         │  │  7. COMMIT TRANSACTION                                  │
          │  └──────────────────────────────────────────────────────────┘
          │          │
          │          ▼
          │  [Release Redis Lock] ──► [Return 200 OK Response]
          │
-         └──► [Lock Rejected / Busy] ──► [Return 429 / 409 Conflict Response]
+         └──► [Lock Rejected / Busy] ──► [Return 409 Conflict Response]
 ```
 
 ### 1. Redis Distributed Lock (`src/utils/lock.ts`)
-- Before executing any balance deduction or transfer, the financial service calls `acquireLock(`wallet:${walletId}`, ttlMs)`.
-- If a lock exists for that wallet ID, subsequent incoming concurrent requests are blocked or cleanly rejected with an `HTTP 409 Conflict` ("A transaction is already in progress on this account").
+- Before mutating balances, the engine invokes `acquireLock(`wallet:${walletId}`, 10000)`.
+- If another process holds the lock, incoming concurrent requests are blocked or cleanly rejected with `HTTP 409 Conflict` (*"A transaction is already in progress on this account"*).
 
 ### 2. Prisma Database Transaction Isolation (`$transaction`)
-- Balance update logic executes within an explicit Prisma interactive transaction (`prisma.$transaction(async (tx) => { ... })`).
-- The wallet row is evaluated and validated against the exact required debit amount before mutating the database balance field (`balance: { decrement: debitAmount }`).
+- Balance deduction executes inside `prisma.$transaction(async (tx) => { ... })`.
+- Balances are decremented atomically with SQL consistency, guaranteeing that ledger totals strictly match wallet balances.
 
 ---
 
-## 3.2 Virtual Account Provisioning Lifecycle
+## 3.3 Virtual Account Provisioning Lifecycle
 
 Dedicated virtual bank accounts (NUBANs) allow customers to fund their Riverbrand wallets by transferring money from any commercial bank in Nigeria.
 
-### Architecture & Gateway Integration (`src/services/userProvisioning.ts`)
+### Gateway Architecture (`src/services/userProvisioning.ts`)
 
 ```mermaid
 sequenceDiagram
@@ -84,13 +104,11 @@ sequenceDiagram
 
 ---
 
-## 3.3 Transaction Processing & Reference Tracking
+## 3.4 Transaction Processing & Reference Tracking
 
 Every money movement operation is assigned a cryptographically unique reference to enforce **idempotency** and prevent duplicate billing across retries.
 
 ### Reference System Architecture (`src/utils/referenceGenerator.ts`)
-
-The reference system (`rbp_brand_references`) stores and tracks payment references across six distinct operational purposes:
 
 | Purpose (`ReferencePurpose`) | Format Example | Description |
 | :--- | :--- | :--- |
@@ -103,9 +121,18 @@ The reference system (`rbp_brand_references`) stores and tracks payment referenc
 
 ---
 
-## 3.4 Pending Balance Holding & Release Engine
+## 3.5 Pending Balance Holding & Release Engine
 
-To comply with anti-money laundering (AML) and identity tier regulations, funds deposited into a customer's wallet that exceed their current identity verification limit are automatically held in a **Pending Balance Pool** (`rbp_brand_pending_balance`).
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 MENTAL MODEL: The Holding Escrow                                         │
+│                                                                             │
+│ If a Tier 1 customer (daily limit ₦50k) receives a ₦500k transfer, we do    │
+│ NOT reject the money. We credit ₦50k to their main wallet, and hold ₦450k   │
+│ safely in `rbp_brand_pending_balance`. As soon as they verify their BVN,     │
+│ the held ₦450k is automatically unlocked into their available balance!       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ```
 [Inbound Deposit Webhook (e.g. ₦500,000)]
@@ -134,19 +161,16 @@ To comply with anti-money laundering (AML) and identity tier regulations, funds 
 ```
 
 ### Technical Workflow (`src/services/monetary/pendingBalance.ts`)
-
-1. **Limit Evaluation**: When a deposit arrives, `FinancialEngine` compares the user's total debits/credits for the current calendar day against their tier limit in `rbp_brand_kyc_benefit`.
+1. **Limit Evaluation**: Compares total debits/credits for the current calendar day against the tier limit.
 2. **Pending Hold Insertion**: Any excess balance is written to `rbp_brand_pending_balance` with status `PENDING`.
-3. **Audit Log Trail**: An entry is appended to `rbp_brand_pending_balance_audit` recording `action = INITIAL_HOLD`, `previousRemaining`, `newRemaining`, and `tierAtTime`.
-4. **Automated Tier Upgrade Trigger (`src/events/handlers/KycTierUpgradedHandler.ts`)**: Upon successful verification of BVN, NIN, or Tier 3 address documents, the system triggers `releasePendingBalances(userId)`, releasing the locked funds into the user's available wallet balance automatically.
+3. **Audit Log Trail**: An entry is appended to `rbp_brand_pending_balance_audit` recording `action = INITIAL_HOLD`.
+4. **Automated Tier Upgrade Trigger (`src/events/handlers/KycTierUpgradedHandler.ts`)**: When Dojah validates the user's BVN or NIN, `releasePendingBalances(userId)` is triggered, releasing held funds into available balance automatically.
 
 ---
 
-## 3.5 Daily Limits & Tier Compliance Tracking
+## 3.6 Daily Limits & Tier Compliance Tracking
 
-The system tracks daily transaction volume per user using `rbp_brand_daily_limit_tracker`.
-
-### Daily Limit Table Structure
+The system tracks daily transaction volume per user using `rbp_brand_daily_limit_tracker`:
 
 ```prisma
 model rbp_brand_daily_limit_tracker {
@@ -160,7 +184,7 @@ model rbp_brand_daily_limit_tracker {
 }
 ```
 
-### KYC Tier Default Ceilings (`rbp_brand_kyc_benefit`)
+### KYC Tier Ceilings (`rbp_brand_kyc_benefit`)
 
 | User KYC Tier | Daily Transfer Limit | Maximum Wallet Balance | Required Verification Items |
 | :--- | :--- | :--- | :--- |
@@ -169,9 +193,5 @@ model rbp_brand_daily_limit_tracker {
 | **`TIER3`** | ₦5,000,000.00 | Unlimited | Government Photo ID & Proof of Address Upload |
 
 ---
-
-## 3.6 Summary
-
-Through Redis distributed locks (`Redlock`), Prisma `$transaction` SQL isolation, multi-gateway virtual account provisioning, reference tracking, and automated pending balance holds, Riverbrand delivers banking-grade double-spending prevention and financial compliance.
 
 *Next Chapter: [04. Savings, WhatsApp & Channels](./04-savings-investments-and-channels.md) — Wealth Engine, WhatsApp Banking & FCM Notifications.*
