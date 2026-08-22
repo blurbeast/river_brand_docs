@@ -101,7 +101,57 @@ sequenceDiagram
 
 ---
 
-## 5.4 Password & Transaction PIN Security
+## 5.4 Single Active Device Login & Session Transfer Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 MENTAL MODEL: The Single Keycard Rule                                    │
+│                                                                             │
+│ A customer can only hold ONE active master keycard to their bank account at │
+│ any time. If they log in on Device A, Device A holds the keycard.           │
+│ When someone tries to log in on Device B:                                   │
+│ 1. Device B is BLOCKED immediately with HTTP 408 (New Device Detected).     │
+│ 2. An OTP is dispatched to the user's verified contact to confirm intent.   │
+│ 3. Once Device B submits the valid OTP, Device A's keycard is deactivated   │
+│    globally (HTTP 401 on next request) and Device B receives the new token. │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor DeviceA as Device A (Currently Logged In)
+    actor DeviceB as Device B (New Device)
+    participant API as Fastify Auth Controller
+    participant OTP as OTP Service / Outbox
+    participant DB as Postgres + Session Control
+
+    Note over DeviceA, DB: Device A is logged in with token (jv: 1, registered: deviceA)
+    
+    DeviceB->>API: POST /auth/signin (email, password, deviceId: "deviceB")
+    API->>DB: Check registered device for user
+    DB-->>API: Registered device is "deviceA" (Mismatch!)
+    API->>OTP: Dispatch Device Verification OTP
+    API-->>DeviceB: 408 New Device Detected (OTP Sent)
+
+    Note over DeviceB, API: User receives 6-digit OTP on registered phone/email
+    DeviceB->>API: POST /auth/verify-device (email, deviceId: "deviceB", otpCode: "123456")
+    API->>OTP: Verify OTP Code
+    OTP-->>API: OTP Validated ✅
+    API->>DB: 1. Increment jwtVersion (1 ➔ 2) in Session Control<br/>2. Update registered device ➔ "deviceB"
+    DB-->>API: Session Version Bumped & Device Updated
+    API-->>DeviceB: 200 OK (New Token Issued with jv: 2)
+
+    Note over DeviceA, API: Device A attempts any subsequent API request
+    DeviceA->>API: GET /wallet/balance (Header: Bearer Token with jv: 1)
+    API->>DB: Check JWT jv (1) == Current jv (2)
+    DB-->>API: Mismatch Detected (1 != 2)
+    API-->>DeviceA: 401 Unauthorized ("Your session has been invalidated. Please log in again.")
+```
+
+---
+
+## 5.5 Password & Transaction PIN Security
 
 The platform maintains two distinct authorization factors:
 
@@ -116,7 +166,7 @@ The platform maintains two distinct authorization factors:
 
 ---
 
-## 5.5 WhatsApp Webhook Security & Cryptographic Verification
+## 5.6 WhatsApp Webhook Security & Cryptographic Verification
 
 ```
 [Inbound Webhook Request] ──► [Fastify Pre-Handler Hook]
@@ -153,7 +203,7 @@ The platform maintains two distinct authorization factors:
 
 ---
 
-## 5.6 Multi-Channel OTP Architecture
+## 5.7 Multi-Channel OTP Architecture
 
 ```
 [OTP Trigger Event (e.g. Password Reset)]
@@ -182,7 +232,7 @@ The platform maintains two distinct authorization factors:
 
 ---
 
-## 5.7 Non-Blocking Asynchronous Audit Logging
+## 5.8 Non-Blocking Asynchronous Audit Logging
 
 To ensure audit logging never degrades HTTP response times, audit entries are written asynchronously (`src/utils/auditLogger.ts`):
 
@@ -192,7 +242,7 @@ To ensure audit logging never degrades HTTP response times, audit entries are wr
 
 ---
 
-## 5.8 Role-Based Access Control (RBAC) Permission Matrix
+## 5.9 Role-Based Access Control (RBAC) Permission Matrix
 
 | System Role (`sys_roles`) | Module Permissions (`sys_permissions`) | Scope of Action |
 | :--- | :--- | :--- |
