@@ -22,7 +22,8 @@ To truly understand digital banking, we must first discard outdated assumptions 
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 🚀 RELEARN & MASTER: "Riverbrand is an Omni-Channel Autonomous Bank Engine."│
 │ It orchestrates Mobile, Web, and WhatsApp clients against an immutable      │
-│ double-entry ledger with sub-50ms speed, zero double-spending, and auto-KYC.│
+│ double-entry ledger where execution happens majorly in milliseconds to      │
+│ seconds, with zero double-spending and automated KYC compliance.            │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -194,47 +195,48 @@ Strict compliance with Central Bank AML/CFT regulations while delivering a trans
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                        COMPETITIVE POSITIONING MATRIX                                  │
-├───────────────────┬──────────────┬──────────────┬──────────────┬───────────────────────┤
-│ Feature / Vector  │ Riverbrand   │ Kuda / OPay  │ PiggyVest    │ Traditional Banks     │
-├───────────────────┼──────────────┼──────────────┼──────────────┼───────────────────────┤
-│ WhatsApp Banking  │ Native 24/7  │ Limited/None │ None         │ Fragmented / Basic    │
-│ Multi-Currency    │ Native Multi │ Single (NGN) │ Dollar Only  │ Domiciliary (Complex) │
-│ Outbox Resiliency │ Guaranteed   │ Best-effort  │ Standard     │ Batch Mainframe       │
-│ KYC Holding Tank  │ Auto-Release │ Hard Freeze  │ N/A          │ Bureaucratic In-Person│
-│ Session Kill-Switch│ Instant Sync│ Delayed TTL  │ Delayed TTL  │ Manual Support Call   │
-│ App-Free Access   │ Complete     │ App Required │ App Required │ USSD (High Failure)   │
-└───────────────────┴──────────────┴──────────────┴──────────────┴───────────────────────┘
+├───────────────────┬──────────────┬──────────────────┬──────────────┬───────────────────┤
+│ Feature / Vector  │ Riverbrand   │ App-Only Banks   │ Wealth Apps  │ Traditional Banks │
+├───────────────────┼──────────────┼──────────────────┼──────────────┼───────────────────┤
+│ WhatsApp Banking  │ Native 24/7  │ Limited/None     │ None         │ Fragmented / Basic│
+│ Multi-Currency    │ Native Multi │ Single Currency  │ Dollar Only  │ Domiciliary/Slow  │
+│ Outbox Resiliency │ Guaranteed   │ Best-effort      │ Standard     │ Batch Mainframe   │
+│ KYC Holding Tank  │ Auto-Release │ Hard Freeze      │ N/A          │ In-Person Manual  │
+│ Session Kill-Switch│ Instant Sync│ Delayed TTL      │ Delayed TTL  │ Manual Support    │
+│ App-Free Access   │ Complete     │ App Required     │ App Required │ USSD (High Drop)  │
+└───────────────────┴──────────────┴──────────────────┴──────────────┴───────────────────┘
 ```
 
 ### Detailed Competitor Benchmarking
 
-#### 1. Riverbrand vs. Kuda Bank ("The App-Only Neo-Bank")
-* **Kuda's Model**: Built around native mobile apps. Users with low storage, slow 2G/3G connectivity, or non-smartphone devices face high onboarding friction. Peak-period interbank switch congestion frequently leads to hanging transfers.
+#### 1. Riverbrand vs. Conventional App-Only Neo-Banks
+* **Conventional Model**: Built strictly around native mobile app downloads. Users with low storage, slow 2G/3G connectivity, or non-smartphone devices face high onboarding friction. Peak-period interbank switch congestion frequently leads to hanging transfers.
 * **Riverbrand's Edge**:
   - **Conversational Ubiquity**: Complete banking inside WhatsApp without requiring app downloads.
+  - **Execution Speed**: Core execution happens majorly in milliseconds to seconds across Fastify request pipelines.
   - **Multi-Switch Clearing Redundancy**: Pluggable provider routing (Providus, Fincra, Flutterwave) guarantees that transfers fail over to backup settlement rails if a primary switch degrades.
 
-#### 2. Riverbrand vs. OPay & Moniepoint ("The POS Agency Giants")
-* **OPay / Moniepoint Model**: Dominate physical cash-in/cash-out merchant terminals. However, their consumer mobile interfaces are heavily cluttered with promotional gambling banners, loans, and non-core utilities.
+#### 2. Riverbrand vs. Traditional Agency & POS Networks
+* **Agency Network Model**: Dominate physical cash-in/cash-out merchant terminals. However, their consumer mobile interfaces are heavily cluttered with promotional gambling banners, loans, and non-core utilities.
 * **Riverbrand's Edge**:
   - **Clean Wealth & Multi-Currency Focus**: Purpose-built for clean, transparent wealth creation (Safelock, Target Savings, AutoSave sweeps) alongside multi-currency cross-border accounts (NGN, USD, GBP, EUR) for global professionals and diaspora earners.
   - **Enterprise Developer Ergonomics**: Modular Fastify core and OpenAPI/Scalar specifications enable seamless white-labeling and banking-as-a-service embeddability.
 
-#### 3. Riverbrand vs. PiggyVest & Cowrywise ("The Savings Specialists")
-* **PiggyVest Model**: Exceptional at automated savings, but lacks primary checking accounts, direct commercial clearing, and dedicated virtual NUBAN settlement rails.
+#### 3. Riverbrand vs. Standalone Savings Specialists
+* **Standalone Model**: Exceptional at automated savings, but lacks primary checking accounts, direct commercial clearing, and dedicated virtual NUBAN settlement rails.
 * **Riverbrand's Edge**:
   - **Unified Checking + High-Yield Wealth**: Riverbrand natively unifies everyday high-speed transactional banking (NIP interbank transfers, utility bills, airtime) with institutional-grade Safelock fixed deposits and target goals within a single double-entry ledger.
 
-#### 4. Riverbrand vs. Chipper Cash & Revolut ("Cross-Border Wallets")
-* **Chipper / Revolut Model**: Provide international currency wallets, but enforce aggressive automated account freezes when volume spikes exceed basic KYC, leaving funds trapped in customer-support backlogs.
+#### 4. Riverbrand vs. Cross-Border Wallets
+* **Cross-Border Wallet Model**: Provide international currency wallets, but enforce aggressive automated account freezes when volume spikes exceed basic KYC, leaving funds trapped in customer-support backlogs.
 * **Riverbrand's Edge**:
   - **The "Pending Balance Holding Tank"**: Excess funds exceeding tier limits are safely placed in an escrow holding account (`rbp_brand_pending_balance`) rather than triggering an account lock. The moment the customer uploads their BVN or ID, the funds are automatically unlocked.
 
-#### 5. Riverbrand vs. Traditional Tier-1 Commercial Banks (GTBank, Zenith, Access)
-* **Traditional Model**: Heavy legacy core banking systems (COBOL/Finacle/Flexcube), cumbersome branch queues, brittle USSD codes that drop sessions mid-transaction with telco toll fees.
+#### 5. Riverbrand vs. Traditional Commercial Banks
+* **Traditional Model**: Heavy legacy core banking systems, cumbersome branch queues, and brittle USSD codes that drop sessions mid-transaction with telco toll fees.
 * **Riverbrand's Edge**:
-  - **Sub-50ms API Latency**: Built with modern Fastify and PgBouncer connection pooling.
-  - **Free, Interactive WhatsApp Interface**: Replaces obsolete USSD strings (`*737#`) with interactive button menus, real-time PDF/image receipts, and conversational natural language processing.
+  - **High-Speed Non-Blocking Throughput**: Execution happens majorly in milliseconds to seconds using modern Fastify and PgBouncer connection pooling.
+  - **Free, Interactive WhatsApp Interface**: Replaces obsolete USSD strings with interactive button menus, real-time PDF/image receipts, and conversational natural language processing.
 
 ---
 

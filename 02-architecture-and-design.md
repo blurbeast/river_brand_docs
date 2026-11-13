@@ -209,7 +209,7 @@ try {
 
 ### 4. Why We Have Done That & The Benefits:
 - **Zero Double-Spending**: Eliminates race conditions before database queries even run.
-- **Sub-50ms Transaction Latency**: Offloads concurrency arbitration to Redis in-memory storage, keeping PostgreSQL free of heavy row lock contention.
+- **Milliseconds-to-Seconds Execution Latency**: Offloads concurrency arbitration to Redis in-memory storage, ensuring execution happens majorly in milliseconds to seconds while keeping PostgreSQL free of heavy row lock contention.
 
 ### 5. What We Can Look to Improve in the Future:
 - **Multi-Node Redlock Consensus**: Upgrade from a single Redis cluster to a 3-node or 5-node distributed Redlock consensus quorum to protect against Redis master failovers during live lock acquisition.
@@ -306,7 +306,7 @@ We implemented the **Transactional Outbox Pattern** using PostgreSQL tables `rbp
 
 ### 4. Why We Have Done That & The Benefits:
 - **Zero Lost Financial Notifications**: 100% delivery guarantee for transaction receipts and push notifications.
-- **Fast HTTP Responses**: Customer transfers complete in sub-50ms because third-party notification APIs are never in the critical path.
+- **Fast HTTP Responses**: Customer transfers and core financial operations complete majorly in milliseconds to seconds because third-party notification APIs are decoupled into the asynchronous outbox.
 
 ### 5. What We Can Look to Improve in the Future:
 - **Change Data Capture (CDC) via Debezium / Kafka**: Transition from periodic polling to PostgreSQL WAL (Write-Ahead Log) streaming using Debezium and Apache Kafka for sub-second outbox dispatch.

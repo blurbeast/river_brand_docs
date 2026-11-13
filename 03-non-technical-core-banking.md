@@ -35,7 +35,7 @@ In high-volume fintech environments, "race conditions" are the single biggest ca
 
 ### What We Aim to Achieve:
 - **Zero Double-Spending**: Absolute mathematical guarantee that a balance cannot be spent twice.
-- **Sub-50ms Processing**: Transactions clear almost instantaneously without making users wait.
+- **Milliseconds-to-Seconds Execution**: Core balance deductions happen majorly in milliseconds, while end-to-end clearing and receipt dispatch complete in seconds without making users wait.
 - **Immutable Auditability**: Every penny moved creates permanent, balanced double-entry accounting records.
 
 ![System Movement Flow](./images/system-movement.png)
@@ -80,13 +80,13 @@ Traditional banks either bounce excess transfers back into interbank limbo (wher
 
 ## ⚔️ 3.5 Competitive Benchmarking: Money Movement & Transfers
 
-| Movement Vector | Traditional Banks | Kuda Bank | OPay / Moniepoint | Riverbrand |
+| Movement Vector | Traditional Commercial Banks | Conventional App-Only Banks | Agency & POS Networks | Riverbrand Platform |
 | :--- | :--- | :--- | :--- | :--- |
-| **Double-Spend Guard** | Heavy DB locks (Slow) | Best-effort queuing | Proprietary POS sync | **Dual-Tier Redis Redlock + SQL Atomicity** |
-| **Transfer Speed** | 5 – 60 seconds | 2 – 5 seconds | 1 – 3 seconds | **Sub-50ms Fastify Engine** |
-| **KYC Limit Overage** | Account Frozen | Hard Reversal / Bounce | In-app KYC Prompt | **Quarantined Escrow Tank (Zero Panics)** |
-| **Dedicated Virtual NUBAN** | Branch Required | Yes (Providus) | Yes (OPay/Moniepoint) | **Multi-Rail (Providus + Fincra Fallback)** |
-| **Receipt Delivery** | Slow SMS (Toll fee) | Push Alert | Push Alert | **Instant WhatsApp Chat Card + Push + Email** |
+| **Double-Spend Guard** | Heavy DB locks (Slow) | Best-effort queuing | Local terminal lock | **Dual-Tier Redis Redlock + SQL Atomicity** |
+| **Transfer Execution** | 5 – 60 seconds (High latency) | 2 – 5 seconds | 2 – 4 seconds | **Majorly in Milliseconds to Seconds** |
+| **KYC Limit Overage** | Account Frozen / Blocked | Hard Reversal / Bounce | In-app KYC Warning | **Quarantined Escrow Tank (Zero Panics)** |
+| **Dedicated Virtual NUBAN** | Branch Required | Single Gateway Partner | Proprietary Virtual Account | **Multi-Rail (Providus + Fincra Fallback)** |
+| **Receipt Delivery** | Delayed SMS (Toll charges) | Mobile Push Only | Paper Slip / Push | **Instant WhatsApp Chat Card + Push + Email** |
 
 ---
 

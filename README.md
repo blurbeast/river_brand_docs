@@ -29,7 +29,7 @@ This book is organized into **two primary sections**, covering every core domain
 
 > **Target Audience:** Systems Architects, Principal Engineers, Security Auditors, DevOps Engineers, and Backend Developers.
 
-The **Technical Track** deconstructs how Riverbrand was engineered from the silicon up to achieve sub-50ms API response times, zero double-spending, and hot-swappable provider redundancy. Every technical chapter is examined through our **Learn, Unlearn, and Relearn** methodology and covers:
+The **Technical Track** deconstructs how Riverbrand was engineered from the silicon up to ensure execution happens majorly in milliseconds to seconds, with zero double-spending and hot-swappable provider redundancy. Every technical chapter is examined through our **Learn, Unlearn, and Relearn** methodology and covers:
 - **What We Have Done**: The precise system implementation.
 - **Engineering Considerations & Trade-Offs**: The architectural bottlenecks and failure modes we navigated.
 - **The Approaches Taken**: The low-level algorithms, concurrency patterns, and protocols deployed.
@@ -61,7 +61,7 @@ We replace complex code with **big real-world analogies**, **step-by-step human 
 - **Why We Did That**: The user frustrations, regulatory requirements, and business problems we solved.
 - **What We Aim to Achieve**: The commercial, operational, and financial outcomes for the bank and its customers.
 - **Quality Relatable Images & Diagrams**: High-definition user journeys, ecosystem overviews, and currency lifecycles.
-- **Extensive Competitive Analysis**: How Riverbrand strategically outperforms and differentiates from **Kuda Bank**, **OPay**, **Moniepoint**, **PiggyVest**, **Chipper Cash**, **Revolut**, and **Traditional Commercial Banks**.
+- **Extensive Competitive Analysis**: How Riverbrand strategically outperforms and differentiates from conventional app-only neo-banks, agency POS networks, standalone wealth apps, cross-border remittance providers, and traditional commercial banks.
 
 ### Non-Technical Chapters (3 to 8):
 1. 📄 [**Chapter 01: Executive Overview & Product Blueprint**](./01-executive-overview.md) — *The high-level ecosystem, omni-channel vision, 5-currency user journeys, and competitive moat.*

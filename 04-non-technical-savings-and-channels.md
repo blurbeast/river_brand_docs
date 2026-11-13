@@ -77,11 +77,11 @@ Imagine having an experienced, private personal banker who answers your texts wi
 
 ## ⚔️ 4.5 Competitive Benchmarking: Savings & Conversational Banking
 
-| Product Capability | Traditional Banks | PiggyVest / Cowrywise | Kuda / OPay | Riverbrand |
+| Product Capability | Traditional Commercial Banks | Standalone Wealth Apps | Conventional Neo-Banks | Riverbrand Platform |
 | :--- | :--- | :--- | :--- | :--- |
 | **WhatsApp Banking** | Very limited / Fragile | None (App Only) | None / Support Only | **Native 24/7 Full Banking (Transfers, Bills, KYC)** |
-| **Fixed Deposits** | Complex branch paperwork | Safelock (App Only) | Simple Fixed Vaults | **In-App & In-Chat Safelock Vaults** |
-| **AutoSave Sweeps** | Standing Order Fees | Free Automated Sweeps| Limited rules | **Zero-Fee Automated Multi-Currency Sweeps** |
+| **Fixed Deposits** | Complex branch paperwork | Mobile App Lockers Only | Simple Fixed Vaults | **In-App & In-Chat Safelock Vaults** |
+| **AutoSave Sweeps** | Standing Order Fees | Free Automated Sweeps | Limited rules | **Zero-Fee Automated Multi-Currency Sweeps** |
 | **Provider Redundancy**| Single Telco Gateway | N/A | Proprietary Rails | **Hot-Swappable (Meta, Twilio, Termii, WATI)** |
 | **Receipt Formats** | Plain Text SMS | In-App Transaction | Push Notification | **Interactive Chat Receipt Cards + PDF Invoices** |
 
