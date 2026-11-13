@@ -177,6 +177,36 @@ We designed a dual-layer concurrency guard: **Layer 1** utilizes Redis-based dis
 - Once the lock is held, the transaction executes inside `prisma.$transaction`: checking balances, performing the debit/credit, writing immutable ledger entries, and enqueuing outbox records.
 - The Redis lock is released in a `finally` block upon transaction completion.
 
+```typescript
+// Concurrency Mutex Pattern in Monetary Engine
+const lockKey = `lock:wallet:${sourceWalletId}`;
+const lockAcquired = await redisService.acquireLock(lockKey, 5000);
+
+if (!lockAcquired) {
+  throw new ConflictException('Transaction already in progress for this wallet. Please wait.');
+}
+
+try {
+  return await prisma.$transaction(async (tx) => {
+    // 1. Balance verification
+    const wallet = await tx.wallet.findUnique({ where: { id: sourceWalletId } });
+    if (wallet.balance < debitAmount) throw new InsufficientBalanceException();
+
+    // 2. Atomic Balance Adjustment
+    await tx.wallet.update({ where: { id: sourceWalletId }, data: { balance: { decrement: debitAmount } } });
+    await tx.wallet.update({ where: { id: destWalletId }, data: { balance: { increment: creditAmount } } });
+
+    // 3. Immutable Ledger Journal Entry
+    await tx.gLJournalEntry.create({ /* balanced double-entry */ });
+
+    // 4. Outbox Enqueue
+    await tx.rbp_brand_outbox.create({ data: { eventType: 'TRANSFER_COMPLETED', payload: JSON.stringify(txData) } });
+  });
+} finally {
+  await redisService.releaseLock(lockKey);
+}
+```
+
 ### 4. Why We Have Done That & The Benefits:
 - **Zero Double-Spending**: Eliminates race conditions before database queries even run.
 - **Sub-50ms Transaction Latency**: Offloads concurrency arbitration to Redis in-memory storage, keeping PostgreSQL free of heavy row lock contention.
@@ -283,7 +313,31 @@ We implemented the **Transactional Outbox Pattern** using PostgreSQL tables `rbp
 
 ---
 
-## 📊 2.9 Observability, Health Checks & Prometheus Metrics
+## 🛡️ 2.9 Dynamic KYC Ceilings & The Pending Balance Quarantine Tank
+
+### 1. What We Have Done:
+We designed an automated compliance holding engine (`rbp_brand_pending_balance`, `rbp_brand_daily_limit_tracker`) that enforces regulatory daily velocity ceilings per KYC tier without failing or bouncing inbound interbank funds.
+
+### 2. Engineering Considerations & Trade-Offs:
+- **Consideration**: Central Bank regulations mandate daily transaction volume limits based on KYC tiers (Tier 1: ₦50k/day, Tier 2: ₦200k/day, Tier 3: ₦5M+/day).
+- **Trade-Off**: Traditional banking gateways either hard-reject inbound transfers (causing money to hang between commercial settlement switches for weeks) or freeze the user's account entirely, provoking customer outrage.
+
+### 3. The Approach Taken:
+- When an inbound payment arrives, `DailyLimitTrackerService` checks the cumulative volume against the user's tier.
+- If the payment exceeds the ceiling, the allowed portion credits to the user's active wallet balance, and the surplus is quarantined in `rbp_brand_pending_balance` under status `QUARANTINED`.
+- The user is notified via WhatsApp/SMS to complete BVN/NIN verification.
+- When Dojah completes identity verification, the domain event `KycTierUpgraded` fires. The event listener `KycTierUpgradedHandler` atomically sweeps quarantined records and credits the user's active wallet balance.
+
+### 4. Why We Have Done That & The Benefits:
+- **100% Regulatory Adherence**: Automatically adheres to Central Bank AML/CFT regulations without manual intervention.
+- **Zero Interbank Reversal Chaos**: Inbound funds are securely held on our books rather than being thrown back into clearing house reversal queues.
+
+### 5. What We Can Look to Improve in the Future:
+- **Automated Risk Scoring & Biometric Liveness**: Embed automated facial matching and Sanctions/PEP list screening into the verification flow to elevate KYC tiers instantaneously without operator review.
+
+---
+
+## 📊 2.10 Observability, Health Checks & Prometheus Metrics
 
 ### 1. What We Have Done:
 We built an isolated Prometheus metrics server (`src/services/metrics/metricsServer.ts`) and a comprehensive health check suite (`src/services/health/healthCheckService.ts`).
