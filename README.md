@@ -21,7 +21,7 @@ To help every reader—from the deep-systems software architect to the non-techn
 └─────────────────────────────────┘     └─────────────────────────────────┘     └─────────────────────────────────┘
 ```
 
-This book is organized into **two primary sections**:
+This book is organized into **two primary sections**, covering every core domain from Architecture and Financial Concurrency to Savings, Security, Operations, and Future Strategic Upgrades across both technical and non-technical dimensions:
 
 ---
 
@@ -29,7 +29,7 @@ This book is organized into **two primary sections**:
 
 > **Target Audience:** Systems Architects, Principal Engineers, Security Auditors, DevOps Engineers, and Backend Developers.
 
-The **Technical Track** deconstructs how Riverbrand was engineered from the silicon up to achieve sub-50ms API response times, zero double-spending, and hot-swappable provider redundancy. Every technical subsection is examined through our **Learn, Unlearn, and Relearn** methodology and covers:
+The **Technical Track** deconstructs how Riverbrand was engineered from the silicon up to achieve sub-50ms API response times, zero double-spending, and hot-swappable provider redundancy. Every technical chapter is examined through our **Learn, Unlearn, and Relearn** methodology and covers:
 - **What We Have Done**: The precise system implementation.
 - **Engineering Considerations & Trade-Offs**: The architectural bottlenecks and failure modes we navigated.
 - **The Approaches Taken**: The low-level algorithms, concurrency patterns, and protocols deployed.
@@ -37,16 +37,14 @@ The **Technical Track** deconstructs how Riverbrand was engineered from the sili
 - **What We Can Look to Improve in the Future**: Clear technical upgrade paths toward distributed consensus and autonomous banking.
 - **Comprehensive Visual Blueprints**: Illustrated with high-definition architectural topologies, execution flowcharts, and sequence flows.
 
-### Core Technical Subsections Explored:
-1. **Modular Architecture & High-Throughput HTTP Engine**: Fastify vs. Express, strict Ajv serialization, and TypeDI inversion of control.
-2. **Database Concurrency & Memory Scaling**: PgBouncer transaction connection multiplexing (5,000 clients -> 50 pooled connections) and Prisma read-replicas.
-3. **The Concurrency Guard & Atomic Money Pipeline**: Multi-node Redis Redlock mutexing, single-commit SQL transactional boundaries, and double-entry general ledgers.
-4. **Zero-Trust Security & Sidecar Session Invalidation**: Dual-token client isolation (`x-local-access-token` vs. `x-web-access-token`) and sub-millisecond session killswitches via `jwt_version`.
-5. **Pluggable Multi-Provider WhatsApp Factory & State Machine**: Abstracted WhatsApp interfaces (Meta, Twilio, Termii, WATI, Interakt, 360dialog) driven by hierarchical Redis session state machines.
-6. **The Transactional Outbox Pattern & Dead-Letter Queue (DLQ)**: Guaranteed at-least-once notification delivery with exponential backoff and zero user-facing latency.
-7. **Dynamic KYC Limits & The Quarantine Balance Tank**: Algorithmic daily volume ceiling enforcement with automated event-driven fund unlock handlers.
-8. **Observability, Health Checks & Prometheus Metrics**: Dedicated internal port `9095` Prometheus metrics server and deep liveness/readiness probes.
-9. **Future Systems Scalability Roadmap**: Kafka event streaming, multi-region distributed SQL, and graph neural network fraud detection.
+### Technical Chapters (3 to 8):
+1. 📄 [**Chapter 02: Architecture & Systems Engineering**](./02-architecture-and-design.md) — *Fastify engine, PgBouncer transaction pooling (5,000 clients -> 50 pool), Prisma read-replicas, and low-level execution flow.*
+2. 📄 [**Chapter 03: Technical Core Banking & Concurrency Engine**](./03-core-banking-and-financial-engine.md) — *Redis Redlock mutexing on wallets, single-commit SQL transactions, immutable double-entry ledger, and virtual NUBAN provisioning.*
+3. 📄 [**Chapter 04: Technical Savings & Multi-Provider WhatsApp Channels**](./04-savings-investments-and-channels.md) — *Safelock compounding math, nightly cron jobs, Meta/Twilio/Termii/Wati providers, and Redis conversation state machines.*
+4. 📄 [**Chapter 05: Technical Security, Sidecar Revocation & Auditing**](./05-security-compliance-and-auditing.md) — *Dual-Token isolation (`x-local-access-token` vs. `x-web-access-token`), sub-millisecond session killswitch (`jwt_version`), Argon2id, and audit logs.*
+5. 📄 [**Chapter 06: Technical Complete Backend Service Catalog**](./08-service-catalog-and-deep-dive.md) — *Deep technical reference for all 36+ core backend services, controllers, interfaces, and DTO contracts.*
+6. 📄 [**Chapter 07: Technical Developer & Operations Manual**](./07-developer-and-operations-manual.md) — *Docker Compose stacks, database migrations, environment variables, WhatsApp webhook debugging, and troubleshooting runbooks.*
+7. 📄 [**Chapter 08: Technical Future Upgrade Roadmap**](./06-future-upgrade-roadmap.md) — *Next-generation scaling: Apache Kafka event streaming, multi-region CockroachDB distributed SQL, and graph neural network fraud detection.*
 
 👉 **[Enter the Technical Track](./02-architecture-and-design.md)**
 
@@ -65,15 +63,14 @@ We replace complex code with **big real-world analogies**, **step-by-step human 
 - **Quality Relatable Images & Diagrams**: High-definition user journeys, ecosystem overviews, and currency lifecycles.
 - **Extensive Competitive Analysis**: How Riverbrand strategically outperforms and differentiates from **Kuda Bank**, **OPay**, **Moniepoint**, **PiggyVest**, **Chipper Cash**, **Revolut**, and **Traditional Commercial Banks**.
 
-### Core Non-Technical Subsections Explored:
-1. **The Modern Banking Ecosystem Explained**: Translating modular architectures into an everyday airport and vault analogy.
-2. **Omni-Channel Ubiquity & 24/7 WhatsApp Banking**: How conversational banking eliminates app downloads and serves low-bandwidth users.
-3. **Five Real-World Currency Lifecycles (NGN, USD, EUR, GBP, CAD)**: Step-by-step stories of everyday retail users, cross-border freelancers, and diaspora savers.
-4. **Wealth Products & Financial Discipline**: Why Safelock fixed deposits, Target Goals, and AutoSave sweeps build personal wealth and sticky bank liquidity.
-5. **The Zero-Panic Regulatory Escrow Tank**: How Riverbrand obeys central bank KYC limits without freezing innocent customer accounts.
-6. **Real-World Mental Models & Analogies**: The Hotel Electronic Keycard, The Two-Door Bank Airlock, The Guaranteed Postal Courier, and The Air Traffic Controller.
-7. **The Competitive Landscape & Strategic Moat**: Exhaustive feature-by-feature benchmarking against market leaders and why Riverbrand wins.
-8. **Executive Risk Governance & Compliance**: Translating audits, role-based controls, and concurrency guards into boardroom trust and investor safety.
+### Non-Technical Chapters (3 to 8):
+1. 📄 [**Chapter 01: Executive Overview & Product Blueprint**](./01-executive-overview.md) — *The high-level ecosystem, omni-channel vision, 5-currency user journeys, and competitive moat.*
+2. 📄 [**Chapter 03: Money Movements & The Vault Airlock**](./03-non-technical-core-banking.md) — *How money moves without double-spending, the Bank Vault Airlock analogy, and the Two-Pocket Escrow Envelope for KYC limits.*
+3. 📄 [**Chapter 04: Wealth Building & 24/7 WhatsApp Banking**](./04-non-technical-savings-and-channels.md) — *Banking without downloading apps, texting a private concierge banker, Safelock vaults, and automated savings sweeps.*
+4. 📄 [**Chapter 05: The Hotel Keycard & Zero-Trust Safety**](./05-non-technical-security-and-governance.md) — *What happens if you lose your phone, the Electronic Hotel Master Keycard analogy, and instant session termination.*
+5. 📄 [**Chapter 06: The Customer & Business Feature Catalog**](./08-non-technical-product-catalog.md) — *A plain-English supermarket menu of 36+ banking capabilities across Identity, Payments, Wealth, FX, and Admin Governance.*
+6. 📄 [**Chapter 07: How The Bank Stays Online 24/7**](./07-non-technical-operations-and-reliability.md) — *The Multi-Engine Jetliner analogy, backup payment switches, surviving internet hiccups, and 99.99% uptime operations.*
+7. 📄 [**Chapter 08: The Future of Autonomous Global Banking**](./06-non-technical-future-roadmap.md) — *The self-driving financial vehicle, conversational AI personal bankers, Pan-African PAPSS rails, and Banking-as-a-Service (BaaS).*
 
 👉 **[Enter the Non-Technical Track](./01-executive-overview.md)**
 
