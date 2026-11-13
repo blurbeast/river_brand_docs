@@ -1,11 +1,11 @@
-# 📄 Chapter 4: Savings, WhatsApp Banking & Channel Integration
+# ⚙️ Chapter 4: Technical Savings & Multi-Provider WhatsApp Channels
 
 > **"Wealth Engine, Multi-Provider Conversational Banking & Push Notifications"**  
-> *Detailed technical specification on Safelock yield calculations, multi-provider WhatsApp engine (Meta, Twilio, Termii, Wati, Interakt, 360dialog), Redis conversational state machines, and FCM push dispatch.*
+> *A comprehensive technical specification on Safelock yield calculations, multi-provider WhatsApp engine (Meta, Twilio, Termii, Wati, Interakt, 360dialog), Redis conversational state machines, and FCM push dispatch.*
 
 ---
 
-## 4.1 The "Learn, Unlearn, Relearn" Guide to Conversational Channels
+## 🧭 4.1 The "Learn, Unlearn, Relearn" Guide to Conversational Channels
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -26,7 +26,7 @@
 
 ---
 
-## 4.2 Wealth Management Engine: Safelock, Target Savings & AutoSave
+## 📈 4.2 Wealth Management Engine: Safelock, Target Savings & AutoSave
 
 The wealth engine (`src/services/monetary/savings/savings.ts`) enables retail customers to save disciplined funds and earn competitive compounding interest yields while providing the platform with predictable liquidity reserves.
 
@@ -49,15 +49,21 @@ The wealth engine (`src/services/monetary/savings/savings.ts`) enables retail cu
 - **Upfront Capital Locking**: Customer funds are debited from the main wallet (`Wallet`) and locked inside a `Target` record where `savingsType = SAFELOCK`.
 - **Compound Interest Calculation Formula**:
   $$\text{Daily Yield} = \frac{\text{Principal Amount} \times \text{Annual Interest Rate (\%)}}{365 \times 100}$$
-- **Daily Interest Accrual Job (`src/job/savings.ts`)**: Runs every night at 00:00 UTC. Iterates through active locked deposits, calculates the daily yield, updates `currentAmount`, and records an entry in `savings_usersavinginterestlog`.
-- **Maturity Auto-Payout (`src/events/handlers/SafelockMaturedHandler.ts`)**: On the maturity date (`endDate`), the principal plus net accrued interest is credited back to the customer's primary wallet automatically.
+- **Daily Interest Accrual Job (`src/job/savings.ts`)**: Runs every night at 00:00 UTC via `SavingsJob`. Iterates through active locked deposits, calculates the daily yield, updates `currentAmount`, and records an entry in `savings_usersavinginterestlog`.
+- **Maturity Auto-Payout (`src/events/handlers/SafelockMaturedHandler.ts`)**: On the maturity date (`endDate`), principal plus net accrued interest is credited back to the customer's primary wallet automatically.
 - **Early Breakage Penalty Math**: If a customer requests emergency liquidation prior to maturity, a breakage penalty rate (`breakage_rate`, typically 20-30% of accrued interest) and government tax (`govern_withdrawal_tax_amount`) are deducted, returning only net principal + remaining interest.
+
+### 2. Target Savings & Automated Sweeps
+- **Target Savings**: Customers set automated daily, weekly, or monthly debit schedules toward custom goals (`Target`). Debits run via scheduled cron jobs.
+- **AutoSave Sweeps**: Periodic rule-based sweeping of idle primary wallet balances into high-yield savings pools, enabling effortless capital accumulation.
 
 ---
 
-## 4.3 Multi-Provider WhatsApp Conversational Banking Engine
+## 💬 4.3 Multi-Provider WhatsApp Conversational Banking Engine
 
 Riverbrand features an enterprise-grade conversational banking engine (`src/whatsapp-banking/`) designed with a **Pluggable Multi-Provider Architecture**. Rather than hardcoding the banking logic to a single WhatsApp BSP (Business Solution Provider), Riverbrand exposes a unified contract (`IWhatsAppProvider`) allowing dynamic runtime switching across providers.
+
+![Pluggable Architecture](./images/pluggable-architecture.png)
 
 ```mermaid
 graph TD
@@ -83,124 +89,67 @@ graph TD
         H_Reg[WhatsAppRegistrationHandler]
         H_Trf[WhatsAppTransferHandler]
         H_Air[WhatsAppAirtimeHandler]
-        H_Bill[WhatsAppBillPaymentHandler]
+        H_Bil[WhatsAppBillPaymentHandler]
         H_Kyc[WhatsAppKycHandler]
     end
-    
-    Handlers --> Financial[🏦 Core Financial Services & Ledger]
-    Handlers --> Response[💬 WhatsAppResponseService]
-    Response --> Provider
+    Handlers --- Engine
 ```
 
-### Supported WhatsApp Provider Integrations
-
-| Provider Adapter (`src/whatsapp-banking/providers/`) | Primary Use Case | Signature Verification Mechanism | Message Types Supported |
-| :--- | :--- | :--- | :--- |
-| **`MetaWhatsAppProvider`** | Official Meta Graph Cloud API (Direct) | `x-hub-signature-256` HMAC-SHA256 | Text, Interactive Buttons, Lists, Flows, Templates |
-| **`TwilioWhatsAppProvider`** | Global Twilio Messaging & Twilio Studio Flows | `X-Twilio-Signature` HMAC-SHA1 | Text, Media, Twilio Studio Webhooks, Templates |
-| **`TermiiWhatsAppProvider`** | African Regional Telco Gateway | Termii API Token / Bearer Header | Text, Media, Interactive Menus |
-| **`WatiWhatsAppProvider`** | WATI Customer Engagement Platform | WATI Webhook Token | Text, Buttons, Templates, Media |
-| **`InteraktWhatsAppProvider`** | Interakt Omnichannel Platform | Interakt Signature Header | Text, Interactive Lists, Quick Replies |
-| **`ThreeSixtyDialogProvider`** | High-Throughput 360dialog Cloud API | 360dialog Client API Key | Text, Buttons, Lists, Media, Flows |
-
----
-
-## 4.4 Redis-Backed Conversational State Machine (`WhatsAppSessionService`)
-
-Conversational banking requires tracking state across multiple chat interactions while maintaining low latency and zero database bloat. Riverbrand uses **Redis in-memory caching** (`src/whatsapp-banking/services/WhatsAppSessionService.ts`) to manage session lifecycles.
-
-### Session Lifecycle & Data Model
+### The `IWhatsAppProvider` Interface Contract
 
 ```typescript
-export interface WhatsAppUserSession {
-  phoneNumber: string;                // e.g. "2348012345678"
-  step: WhatsAppStep;                 // Current conversational state enum
-  authenticated: boolean;             // True if phone maps to verified user
-  userId?: string;                    // Linked database user_user ID
-  userFullName?: string;              // Customer display name
-  failedPinAttempts: number;          // Counter for brute-force prevention
-  sessionData: Record<string, any>;   // Dynamic step cache (e.g. transfer amount, bank, recipient)
-  lastActivity: number;               // Unix timestamp (ms)
+export interface IWhatsAppProvider {
+  parseIncomingWebhook(body: any, headers: Record<string, string>): Promise<IIncomingMessage>;
+  sendTextMessage(to: string, text: string): Promise<boolean>;
+  sendInteractiveButtons(to: string, header: string, body: string, buttons: IButtonOption[]): Promise<boolean>;
+  sendInteractiveList(to: string, title: string, sections: IListSection[]): Promise<boolean>;
+  verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean;
 }
 ```
 
-### Redis Key Layout & TTL Rules
-
-- **Active Session**: `wa:session:{cleanPhoneNumber}` — TTL: `1800 seconds` (30 minutes). Reset on every inbound message.
-- **Message Deduplication**: `wa:msg:{messageId}` — TTL: `86400 seconds` (24 hours). Prevents duplicate processing of webhook retries.
-- **Security Lockout**: `wa:lockout:{cleanPhoneNumber}` — TTL: `1800 seconds` (30 minutes). Automatically set when `failedPinAttempts >= 3`.
-- **Global Reset Keywords**: Sending `HI`, `HELLO`, `MENU`, `MAIN`, `START`, `CANCEL`, `RESET`, or `EXIT` instantly clears step memory and returns the customer to the top-level main menu (`WhatsAppStep.IDLE`).
-
----
-
-## 4.5 Conversational Step Handlers Deep Dive
-
-```
-                               ┌───────────────────────────────────┐
-                               │     INCOMING WHATSAPP MESSAGE     │
-                               └───────────────────────────────────┘
-                                                 │
-                                                 ▼
-                               ┌───────────────────────────────────┐
-                               │    WhatsAppBankingService.ts      │
-                               │  Evaluates session.step in Redis  │
-                               └───────────────────────────────────┘
-                                                 │
-         ┌───────────────────┬───────────────────┼───────────────────┬───────────────────┐
-         ▼                   ▼                   ▼                   ▼                   ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│  REGISTRATION   │ │    TRANSFERS    │ │ AIRTIME & DATA  │ │  BILL PAYMENTS  │ │ KYC & BALANCES  │
-│     HANDLER     │ │     HANDLER     │ │     HANDLER     │ │     HANDLER     │ │     HANDLER     │
-└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
-```
-
-### 1. `WhatsAppRegistrationHandler` (`WhatsAppRegistrationHandler.ts`)
-Allows prospective customers to complete frictionless KYC onboarding without ever downloading the native mobile app:
-1. **Name Capture (`REGISTRATION_NAME`)**: User enters First and Last Name.
-2. **Email Capture & OTP (`REGISTRATION_EMAIL` & `REGISTRATION_EMAIL_OTP`)**: Dispatches a 6-digit cryptographic OTP to the email.
-3. **BVN Verification (`REGISTRATION_BVN`)**: Queries Dojah Identity Gateway to verify identity against national database.
-4. **Selfie Capture (`REGISTRATION_SELFIE`)**: User takes a photo inside WhatsApp, uploaded to secure cloud storage.
-5. **Set 4-Digit PIN (`REGISTRATION_SET_PIN`)**: Hashes transaction PIN using bcrypt/argon2.
-6. **Instant NUBAN Provisioning**: Automatically triggers `UserProvisioningService`, creating a dedicated Providus/Fincra bank account and sending an interactive welcome card.
-
-### 2. `WhatsAppTransferHandler` (`WhatsAppTransferHandler.ts`)
-Powers instant P2P and Interbank transfers:
-1. **Account Entry / Beneficiary Selection (`TRANSFER_ENTER_ACCOUNT`)**: Prompts user for 10-digit NUBAN or saved beneficiary.
-2. **Bank Selection & Name Inquiry (`TRANSFER_SELECT_BANK`)**: Resolves account name dynamically against Nigerian interbank clearing switch.
-3. **Currency & Amount Entry (`TRANSFER_SELECT_CURRENCY` & `TRANSFER_ENTER_AMOUNT`)**: Selects wallet (NGN, USD, EUR, GBP) and debit amount.
-4. **PIN Authorization (`TRANSFER_ENTER_PIN`)**: Verifies 4-digit PIN with brute-force lockout protection.
-5. **Atomic Execution**: Calls `FinancialEngine` with distributed Redlock locking, producing an instant digital receipt card on WhatsApp.
-
-### 3. `WhatsAppAirtimeHandler` (`WhatsAppAirtimeHandler.ts`)
-1. **Recipient & Network**: Top-up for self or enter 3rd-party number; auto-detects telco (MTN, Airtel, Glo, 9mobile).
-2. **Amount / Data Plan Selection**: Dynamic data plan lists retrieved directly from VTU providers.
-3. **PIN Authorization & Instant Top-up**: Executes wallet debit and delivers mobile value in seconds.
-
-### 4. `WhatsAppBillPaymentHandler` (`WhatsAppBillPaymentHandler.ts`)
-1. **Category Selection**: Electricity (Prepaid / Postpaid), Cable TV (DSTV, GOTV, Startimes), Internet, Betting.
-2. **Meter / Smartcard Validation**: Live account lookup verifying meter owner name before taking payment.
-3. **PIN Authorization & Token Delivery**: Generates prepaid 20-digit recharge tokens directly in the chat window.
-
-### 5. `WhatsAppKycHandler` (`WhatsAppKycHandler.ts`)
-1. **Identity Upgrades**: Enter NIN or upload utility bills via chat to upgrade to Tier 2 and Tier 3.
-2. **Multi-Currency Balances**: Instant display of active balances across NGN, USD, EUR, and GBP wallets with recent transaction summaries.
+### Supported Provider Implementations:
+1. **`MetaWhatsAppProvider`**: Direct Meta Graph API v18+ integration with SHA-256 HMAC signature validation (`x-hub-signature-256`).
+2. **`TwilioWhatsAppProvider`**: Twilio Programmable Messaging API with `X-Twilio-Signature` authentication.
+3. **`TermiiWhatsAppProvider`**: African telecommunications gateway optimized for direct Nigerian telco routing.
+4. **`WatiWhatsAppProvider`**, **`InteraktWhatsAppProvider`**, **`ThreeSixtyDialogProvider`**: Enterprise BSP connectors.
+5. **`WhatsAppProviderFactory`**: Factory resolver that dynamically instantiates the active provider based on environment configuration (`WHATSAPP_ACTIVE_PROVIDER`).
 
 ---
 
-## 4.6 FCM Multi-Platform Push Notification Pipeline
+## 🔄 4.4 WhatsApp Session State Machine & Domain Handlers
+
+User interaction state is stored in Redis under key `wa:session:${phoneNumber}` with a rolling TTL of 15 minutes.
+
+![WhatsApp Low-Level User Journey](./images/non-technical-low-level-journey.png)
+
+```mermaid
+stateDiagram-v2
+    [*] --> IDLE : First Contact / "Hi"
+    IDLE --> MAIN_MENU : Welcome Card Sent
+    MAIN_MENU --> TRANSFER_SELECT_BANK : Select "Transfer"
+    TRANSFER_SELECT_BANK --> TRANSFER_ENTER_ACCOUNT : Bank Chosen
+    TRANSFER_ENTER_ACCOUNT --> TRANSFER_ENTER_AMOUNT : Account Resolved
+    TRANSFER_ENTER_AMOUNT --> TRANSFER_ENTER_PIN : Amount Validated
+    TRANSFER_ENTER_PIN --> TRANSFER_PROCESSING : bcrypt PIN Check Passed
+    TRANSFER_PROCESSING --> MAIN_MENU : Atomic Debit Done & Receipt Pushed
+    TRANSFER_ENTER_PIN --> IDLE : 3 Failed PIN Attempts (Lock 30m)
+```
+
+### Conversational Domain Handlers:
+1. **`WhatsAppRegistrationHandler`**: Captures user name, sends and verifies email OTP, verifies BVN with Dojah, captures photo selfie, sets 4-digit bcrypt transaction PIN, and triggers virtual account generation.
+2. **`WhatsAppTransferHandler`**: Interbank transfers, commercial bank code lookup, live recipient name resolution, wallet balance validation, PIN authorization, and receipt push.
+3. **`WhatsAppAirtimeHandler`**: Direct mobile top-up and data bundles across MTN, Airtel, Glo, and 9mobile.
+4. **`WhatsAppBillPaymentHandler`**: Prepaid electricity token vending, postpaid power clearance, and DSTV/GOTV smartcard renewals.
+5. **`WhatsAppKycHandler`**: NIN verification, residential document upload, and real-time balance queries across NGN, USD, EUR, and GBP.
+
+---
+
+## 📱 4.5 Real-Time Push Notification Engine (Firebase Cloud Messaging)
+
+Multi-device real-time push notification delivery is managed by `DeviceTokenService` and `PushNotificationService`:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🧠 MENTAL MODEL: Self-Healing Push Registry                                 │
-│                                                                             │
-│ When an app is uninstalled, Google FCM returns `token-not-registered`.      │
-│ Instead of continuously spamming dead tokens, Riverbrand intercepts the     │
-│ error and sets `is_active = false`, saving bandwidth and CPU cycles!        │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-```
-[Mobile / Web Client] ──► POST /user/device-token ──► [Save in `sys_device_tokens`]
+[Mobile / Web Client] ──► POST /user/device-token ──► [Save in `DeviceToken`]
                                                                │
                                                                ▼
 [Transaction Event Occurs] ──► [PushNotificationService.sendToUser(userId, title, body)]
@@ -219,17 +168,15 @@ Powers instant P2P and Interbank transfers:
                                                                      [Auto-deactivate token (`is_active = false`)]
 ```
 
----
-
-## 4.7 Multi-Channel Notification Matrix
+### Multi-Channel Notification Matrix
 
 | Notification Channel | Delivery Mechanism | Fallback Handling |
 | :--- | :--- | :--- |
 | **WhatsApp Chat Alerts** | Active WhatsApp Provider (`IWhatsAppProvider`) | Retried via Transactional Outbox. |
-| **FCM Push Notification** | Firebase Admin SDK (`sys_device_tokens`) | Self-healing invalidation on uninstall. |
+| **FCM Push Notification** | Firebase Admin SDK (`DeviceToken`) | Self-healing invalidation on uninstall. |
 | **Email SMTP Alert** | Mailpit (Dev) / SendGrid / Brevo (Prod) | Retried automatically via Outbox Queue. |
 | **In-App Notification Center** | `Notification` Table in Database | Persisted for in-app inbox display (`isRead = false`). |
 
 ---
 
-*Next Chapter: [05. Security, Revocation & Auditing](./05-security-compliance-and-auditing.md) — Dual-Token Security, Sidecar Revocation, RBAC & Audit Trails.*
+*Continue to: [Chapter 05: Technical Security, Sidecar & Auditing](./05-security-compliance-and-auditing.md)*

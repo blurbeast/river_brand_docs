@@ -181,7 +181,24 @@ node scripts/create-twilio-flow-template.js
 
 ---
 
-## 7.7 Interactive API Documentation & Local Web UI Services
+## 7.7 Background Jobs Fleet & System Guards
+
+Riverbrand runs an autonomous suite of scheduled background jobs and system reliability guards initialized on server startup:
+
+| Background Service | Schedule / Trigger | Primary Responsibility |
+| :--- | :--- | :--- |
+| **`OutboxJob`** | **PostgreSQL `LISTEN/NOTIFY`** + Safety Cron (`*/5 * * * * *`) | Processes pending outbox events instantaneously upon database commit; uses `FOR UPDATE SKIP LOCKED` batch sweeps. |
+| **`DlqJob`** | Scheduled Cron (`*/15 * * * *`) | Sweeps dead-letter records (`rbp_brand_deadletter`) exceeding max retries, alerting operators and enabling automated replay. |
+| **`SavingsJob`** | Daily at Midnight (`0 0 * * *`) | Calculates and accrues daily compounding interest on active Safelock fixed deposits into `savings_usersavinginterestlog`. |
+| **`ReconciliationJob`** | Daily Automated Sweep | Reconciles internal transactions against commercial bank clearing settlement statements, detecting mismatched records. |
+| **`BillReconciliationJob`** | Daily Automated Sweep | Reconciles airtime, electricity, and cable TV bill purchases against vendor aggregator responses; initiates automated refunds for failed bills. |
+| **`ArchivalJob`** | Daily at Midnight (`0 0 * * *`) | Archives and prunes processed outbox and audit events older than 3 days, keeping primary relational tables lean. |
+| **`GeneralLedgerJob`** | Daily Snapshot | Takes automated snapshots of all double-entry general ledger accounts into `GLBalanceSnapshot`. |
+| **`startMemoryGuard`** | Continuous Interval | Actively monitors Node.js V8 heap and RSS memory consumption, triggering graceful worker recycling if memory thresholds are exceeded. |
+
+---
+
+## 7.8 Interactive API Documentation & Local Web UI Services
 
 When the Docker stack is running, access the local developer services:
 

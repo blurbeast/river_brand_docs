@@ -1,11 +1,11 @@
-# 📄 Chapter 3: Core Banking & Financial Engine
+# ⚙️ Chapter 3: Core Banking & Financial Concurrency Engine
 
-> **"Financial Ledger, Money Movement & Double-Spending Prevention"**  
-> *Deep-dive technical specification on atomic ledger debits, distributed locking, virtual NUBAN generation, pending balance locks, and daily limit tracking.*
+> **"Financial Ledger, Atomic Debits & Double-Spending Prevention"**  
+> *A comprehensive technical specification on atomic wallet debits, distributed Redlock mutexing, virtual NUBAN generation, double-entry general ledgers, reconciliation jobs, and daily velocity tracking.*
 
 ---
 
-## 3.1 The "Learn, Unlearn, Relearn" Guide to Money Movement
+## 🧭 3.1 The "Learn, Unlearn, Relearn" Guide to Money Movement
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -14,27 +14,30 @@
 │ millisecond, both read `balance = ₦10k` before either commits, leading to   │
 │ negative balances and irreversible bank loss.                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 💡 LEARN: "Concurrency in distributed systems requires two layers of guards"│
+│ 💡 LEARN: "Concurrency in distributed systems requires multi-layered guards"│
 │ Layer 1: Distributed lock in memory (Redis Redlock) to serialize requests.  │
-│ Layer 2: ACID row-level locking & single-commit database transactions.      │
+│ Layer 2: ACID single-commit database transactions ($transaction).           │
+│ Layer 3: Balanced General Ledger double-entry lines (GLJournalLine).        │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 🚀 RELEARN & MASTER: "Riverbrand's Quantum Ledger Engine"                   │
 │ Every debit acquires a 10s Redis mutex lock on `lock:wallet:{walletId}`,    │
 │ validates daily limits, mutates balance, writes double-entry ledger rows,   │
-│ queues the outbox event, and commits in one atomic step.                     │
+│ queues the outbox event, and commits in one atomic step in milliseconds.    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3.2 Double-Spending Prevention & Atomic Balance Locking
+## 🏛️ 3.2 System Architecture & Concurrency Guard
+
+![Financial Movement Architecture](./images/animated-financial-movement.svg)
 
 ```
 [Incoming Debit Request] 
          │
          ▼
 ┌─────────────────────────────────────────────────────────┐
-│ TIER 1: Distributed Redis Lock (utils/lock.ts)          │
+│ TIER 1: Distributed Redis Lock (src/utils/lock.ts)      │
 │ Lock Key: `lock:wallet:{walletId}` (TTL: 10 Seconds)    │
 └─────────────────────────────────────────────────────────┘
          │
@@ -43,13 +46,14 @@
          │          ▼
          │  ┌──────────────────────────────────────────────────────────┐
          │  │ TIER 2: Database Isolation Transaction ($transaction)    │
-         │  │  1. Check Daily Limit: totalDebits + amount <= limit     │
-         │  │  2. SELECT balance FROM "Wallet" WHERE id = walletId;   │
-         │  │  3. Verify: balance >= debitAmount                      │
-         │  │  4. UPDATE "Wallet" SET balance = balance - debitAmount │
-         │  │  5. INSERT INTO "transactions" (...)                    │
-         │  │  6. INSERT INTO "outbox" (...)                          │
-         │  │  7. COMMIT TRANSACTION                                  │
+         │  │  1. Idempotency Check: IdempotencyService                │
+         │  │  2. Daily Limit Check: DailyLimitTrackerService          │
+         │  │  3. Verify: balance >= (debitAmount + fee)               │
+         │  │  4. Decrement Source Wallet Balance                      │
+         │  │  5. Increment Destination Wallet Balance                 │
+         │  │  6. Double-Entry GL Journal: GeneralLedgerService        │
+         │  │  7. Outbox Event Insert: rbp_brand_outbox                │
+         │  │  8. COMMIT TRANSACTION (Atomic Execution)                │
          │  └──────────────────────────────────────────────────────────┘
          │          │
          │          ▼
@@ -58,21 +62,69 @@
          └──► [Lock Rejected / Busy] ──► [Return 409 Conflict Response]
 ```
 
-### 1. Redis Distributed Lock (`src/utils/lock.ts`)
-- Before mutating balances, the engine invokes `acquireLock(`wallet:${walletId}`, 10000)`.
-- If another process holds the lock, incoming concurrent requests are blocked or cleanly rejected with `HTTP 409 Conflict` (*"A transaction is already in progress on this account"*).
+### 1. What We Have Done:
+We built the **Financial Monetary Engine** (`src/services/monetary/financialEngine.ts` — 1,060+ lines) providing atomic execution for interbank transfers, peer-to-peer (P2P) transfers, bill settlements, card funding, and currency swaps.
 
-### 2. Prisma Database Transaction Isolation (`$transaction`)
-- Balance deduction executes inside `prisma.$transaction(async (tx) => { ... })`.
-- Balances are decremented atomically with SQL consistency, guaranteeing that ledger totals strictly match wallet balances.
+```typescript
+export interface IAtomicDebitPayload {
+  userId: number | bigint;
+  amount: number;
+  idempotencyKey: string;
+  sessionId?: string;
+  extReferenceId?: string;
+  purpose?: ReferencePurpose;
+  provider?: string;
+  providerFee?: number;
+  currency?: string;
+  currencyId?: number | bigint;
+  chargeType?: TransactionChargeType;
+  nature?: TransactionNature;
+  description?: string;
+  recipientEmail?: string;
+  recipientId?: number | bigint;
+  saveBeneficiary?: boolean;
+  sourceAccountName?: string;
+  sourceAccountNumber?: string;
+  sourceBankName?: string;
+  skipLedger?: boolean;
+}
+
+export interface IAtomicDebitResult {
+  success: boolean;
+  reference: string;
+  sessionId?: string;
+  previousBalance: number;
+  newBalance: number;
+  debitedAmount: number;
+  fee?: number;
+  providerFee?: number;
+  realisedFee?: number;
+}
+```
+
+### 2. Engineering Considerations & Trade-Offs:
+- **Consideration**: High network latency or deliberate multi-device exploits can send duplicate transfer requests within milliseconds.
+- **Trade-Off**: Database-level row locking (`SELECT FOR UPDATE`) can create database thread bottlenecks and connection exhaustion under high traffic.
+
+### 3. The Approach Taken:
+- **Tier 1 (Redis Redlock)**: The engine executes `withDistributedLock` using key `lock:wallet:${walletId}` with a 10,000ms TTL. Duplicate requests are immediately rejected with `HTTP 409 Conflict`.
+- **Tier 2 (Interactive `$transaction`)**: Inside `prisma.$transaction`, balance validation, ledger debit, ledger credit, fee deduction (`TransferFeeService`), and outbox insertion occur atomically.
+- **Tier 3 (Double-Entry General Ledger)**: Powered by `GeneralLedgerService`, every movement writes debits and credits to `GLJournalEntry` and `GLJournalLine`.
+
+### 4. Why We Have Done That & The Benefits:
+- **Zero Double-Spending**: Eliminates negative balances before queries hit PostgreSQL.
+- **Execution in Milliseconds to Seconds**: Balance verification and ledger locking execute majorly in milliseconds, while end-to-end clearing and receipt dispatch complete in seconds.
+
+### 5. What We Can Look to Improve in the Future:
+- **Distributed Multi-Node Redlock Consensus**: Transition to a 5-node Redlock consensus quorum to withstand Redis master failovers during live transaction locks.
 
 ---
 
-## 3.3 Virtual Account Provisioning Lifecycle
+## 🏦 3.3 Virtual Account Provisioning Lifecycle
 
-Dedicated virtual bank accounts (NUBANs) allow customers to fund their Riverbrand wallets by transferring money from any commercial bank in Nigeria.
+Dedicated virtual bank accounts (NUBANs) allow customers to fund their Riverbrand wallets via instant bank transfers from any commercial bank.
 
-### Gateway Architecture (`src/services/userProvisioning.ts`)
+![System Movement Flow](./images/system-movement.png)
 
 ```mermaid
 sequenceDiagram
@@ -96,7 +148,7 @@ sequenceDiagram
             API->>Fincra: Request Virtual Account Generation
             Fincra-->>API: Return NUBAN (e.g. 8031234567)
         end
-        API->>DB: INSERT INTO user_account_details (accountNumber, providerName, user_id)
+        API->>DB: INSERT INTO userAccountDetails (accountNumber, providerName, user_id)
         API->>DB: INSERT INTO rbp_brand_references (purpose: ACCOUNT_CREATION)
         API-->>User: 201 Created (Dedicated Virtual Account Numbers)
     end
@@ -104,11 +156,9 @@ sequenceDiagram
 
 ---
 
-## 3.4 Transaction Processing & Reference Tracking
+## 🏷️ 3.4 Cryptographic Idempotency & Reference Tracking
 
-Every money movement operation is assigned a cryptographically unique reference to enforce **idempotency** and prevent duplicate billing across retries.
-
-### Reference System Architecture (`src/utils/referenceGenerator.ts`)
+Every money movement operation is assigned a cryptographically unique reference generated via `src/utils/referenceGenerator.ts`:
 
 | Purpose (`ReferencePurpose`) | Format Example | Description |
 | :--- | :--- | :--- |
@@ -121,18 +171,7 @@ Every money movement operation is assigned a cryptographically unique reference 
 
 ---
 
-## 3.5 Pending Balance Holding & Release Engine
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🧠 MENTAL MODEL: The Holding Escrow                                         │
-│                                                                             │
-│ If a Tier 1 customer (daily limit ₦50k) receives a ₦500k transfer, we do    │
-│ NOT reject the money. We credit ₦50k to their main wallet, and hold ₦450k   │
-│ safely in `rbp_brand_pending_balance`. As soon as they verify their BVN,     │
-│ the held ₦450k is automatically unlocked into their available balance!       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+## 🛡️ 3.5 Regulatory Pending Balance Tank & Daily Ceilings
 
 ```
 [Inbound Deposit Webhook (e.g. ₦500,000)]
@@ -160,38 +199,30 @@ Every money movement operation is assigned a cryptographically unique reference 
              [Pending Balance Auto-Released to Main Wallet]
 ```
 
-### Technical Workflow (`src/services/monetary/pendingBalance.ts`)
-1. **Limit Evaluation**: Compares total debits/credits for the current calendar day against the tier limit.
-2. **Pending Hold Insertion**: Any excess balance is written to `rbp_brand_pending_balance` with status `PENDING`.
-3. **Audit Log Trail**: An entry is appended to `rbp_brand_pending_balance_audit` recording `action = INITIAL_HOLD`.
-4. **Automated Tier Upgrade Trigger (`src/events/handlers/KycTierUpgradedHandler.ts`)**: When Dojah validates the user's BVN or NIN, `releasePendingBalances(userId)` is triggered, releasing held funds into available balance automatically.
-
----
-
-## 3.6 Daily Limits & Tier Compliance Tracking
-
-The system tracks daily transaction volume per user using `rbp_brand_daily_limit_tracker`:
-
-```prisma
-model rbp_brand_daily_limit_tracker {
-  id          String    @id @default(uuid()) @db.Uuid
-  userId      BigInt    @map("user_id")
-  date        String    @db.VarChar(10) // Format: "YYYY-MM-DD"
-  totalDebits Decimal   @default(0) @map("total_debits") @db.Decimal(20, 2)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  @@unique([userId, date])
-}
-```
-
 ### KYC Tier Ceilings (`rbp_brand_kyc_benefit`)
 
-| User KYC Tier | Daily Transfer Limit | Maximum Wallet Balance | Required Verification Items |
+| User KYC Tier | Daily Transfer Limit | Maximum Wallet Balance | Verification Requirement |
 | :--- | :--- | :--- | :--- |
-| **`TIER1`** | ₦50,000.00 | ₦300,000.00 | Verified Phone Number & Email |
+| **`TIER1`** | ₦50,000.00 | ₦300,000.00 | Phone Number & Email Verification |
 | **`TIER2`** | ₦200,000.00 | ₦500,000.00 | BVN or NIN Verification via Dojah Gateway |
-| **`TIER3`** | ₦5,000,000.00 | Unlimited | Government Photo ID & Proof of Address Upload |
+| **`TIER3`** | ₦5,000,000.00 | Unlimited | Government Photo ID & Proof of Address |
 
 ---
 
-*Next Chapter: [04. Savings, WhatsApp & Channels](./04-savings-investments-and-channels.md) — Wealth Engine, WhatsApp Banking & FCM Notifications.*
+## 🔍 3.6 Automated Settlement & Reconciliation Jobs
+
+To maintain 100% accounting balance between internal wallet balances, general ledger lines, and external partner accounts, Riverbrand runs continuous automated reconciliation jobs:
+
+1. **`ReconciliationJob` (`src/job/reconciliationJob.ts`)**:
+   - Compares internal transaction logs against commercial clearing settlement statements.
+   - Detects discrepancies, missing inbound webhook events, and unbalanced settlement amounts.
+2. **`BillReconciliationJob` (`src/job/billReconciliationJob.ts`)**:
+   - Audits airtime, data, and utility bill debits against provider success responses.
+   - Automatically initiates refund credits for bills confirmed as failed by telco aggregators.
+3. **`GeneralLedgerJob` (`src/job/generalLedgerJob.ts`)**:
+   - Takes automated daily snapshots of all GL accounts into `GLBalanceSnapshot`.
+   - Validates that Total Assets equal Total Liabilities plus Equity.
+
+---
+
+*Continue to: [Chapter 04: Technical Savings & WhatsApp Channels](./04-savings-investments-and-channels.md)*
