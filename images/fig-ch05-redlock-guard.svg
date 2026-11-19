@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="40" y="44" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">The Two-Tier Concurrency Guard</text>
+
+  <!-- Transfer request card -->
+  <rect x="24" y="168" width="160" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <g transform="translate(104,222)">
+    <circle cx="0" cy="-12" r="9" fill="#334155"/>
+    <rect x="-11" y="0" width="22" height="26" rx="7" fill="#334155"/>
+  </g>
+  <text x="104" y="292" font-size="13" fill="#334155" text-anchor="middle">Transfer request</text>
+
+  <!-- Entry arrow -->
+  <line x1="192" y1="210" x2="302" y2="210" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Red waiting queue -->
+  <g transform="translate(212,300)">
+    <circle cx="0" cy="-8" r="6" fill="#dc2626"/>
+    <rect x="-7" y="0" width="14" height="18" rx="5" fill="#dc2626"/>
+  </g>
+  <g transform="translate(252,300)">
+    <circle cx="0" cy="-8" r="6" fill="#dc2626"/>
+    <rect x="-7" y="0" width="14" height="18" rx="5" fill="#dc2626"/>
+  </g>
+  <g transform="translate(292,300)">
+    <circle cx="0" cy="-8" r="6" fill="#dc2626"/>
+    <rect x="-7" y="0" width="14" height="18" rx="5" fill="#dc2626"/>
+  </g>
+  <text x="252" y="338" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">waiting for the lock</text>
+
+  <!-- Tier 1 gate -->
+  <rect x="310" y="150" width="210" height="230" rx="12" fill="#ccfbf1" stroke="#0f766e" stroke-width="2.5"/>
+  <circle cx="338" cy="178" r="15" fill="#0f766e"/>
+  <text x="338" y="184" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="415" y="210" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Tier 1 —</text>
+  <text x="415" y="228" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Distributed Lock</text>
+  <text x="415" y="252" font-size="13" fill="#334155" text-anchor="middle">one writer per wallet</text>
+  <text x="415" y="268" font-size="13" fill="#334155" text-anchor="middle">at a time</text>
+  <g transform="translate(415,318)">
+    <path d="M -10 -8 a 10 10 0 0 1 20 0" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round"/>
+    <rect x="-16" y="-8" width="32" height="26" rx="5" fill="#0f766e"/>
+    <circle cx="0" cy="3" r="3.5" fill="#f8fafc"/>
+    <rect x="-1.5" y="3" width="3" height="8" rx="1.5" fill="#f8fafc"/>
+  </g>
+
+  <!-- Connector -->
+  <line x1="526" y1="265" x2="572" y2="265" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Tier 2 gate -->
+  <rect x="580" y="150" width="210" height="230" rx="12" fill="#e2e8f0" stroke="#1e293b" stroke-width="2.5"/>
+  <circle cx="608" cy="178" r="15" fill="#1e293b"/>
+  <text x="608" y="184" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="685" y="210" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Tier 2 —</text>
+  <text x="685" y="228" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Single Atomic Commit</text>
+  <text x="685" y="252" font-size="13" fill="#334155" text-anchor="middle">all ledger entries</text>
+  <text x="685" y="268" font-size="13" fill="#334155" text-anchor="middle">or none</text>
+  <g transform="translate(685,318)">
+    <circle cx="0" cy="0" r="22" fill="none" stroke="#16a34a" stroke-width="3"/>
+    <path d="M -10 0 L -3 8 L 11 -8" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Connector to completion -->
+  <line x1="796" y1="265" x2="842" y2="265" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Transfer complete + receipt -->
+  <g transform="translate(888,228)">
+    <path d="M -18 -24 L 18 -24 L 18 24 L 11 19 L 4 24 L -4 19 L -11 24 L -18 19 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="-10" y1="-13" x2="10" y2="-13" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-10" y1="-3" x2="10" y2="-3" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-10" y1="7" x2="3" y2="7" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <text x="888" y="296" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Transfer</text>
+  <text x="888" y="314" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">complete</text>
+
+  <!-- Bottom annotation -->
+  <text x="480" y="490" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">Lock first, commit once — no double-spend, no partial write.</text>
+</svg>

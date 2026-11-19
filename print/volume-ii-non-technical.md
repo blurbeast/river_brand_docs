@@ -1,0 +1,22 @@
+# Volume II — Non-Technical Track (include manifest, in book order)
+front-matter/f01-title-page.md
+front-matter/f02-authors.md
+front-matter/f03-copyright.md
+front-matter/f04-preface.md
+front-matter/f05-how-to-read.md
+front-matter/f06-table-of-contents.md
+front-matter/f07-list-of-figures.md
+chapters/ch01-riverbrand-story.md
+chapters/ch02-learn-unlearn-relearn.md
+chapters/ch03-domain-primer.md
+chapters/ch04-for-everyone-how-money-moves.md
+chapters/ch06-for-everyone-wealth-and-channels.md
+chapters/ch08-for-everyone-safety-and-compliance.md
+chapters/ch10-for-everyone-reliability.md
+chapters/ch12-for-everyone-product-catalog.md
+chapters/ch14-for-everyone-future-roadmap.md
+appendices/app-a-glossary.md
+appendices/app-b-faq.md
+appendices/app-e-competitive-matrix.md
+appendices/app-f-analogy-atlas.md
+appendices/app-g-changelog.md

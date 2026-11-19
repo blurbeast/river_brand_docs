@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="40" y="44" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">The Electronic Hotel Keycard</text>
+
+  <!-- Person holding the session key -->
+  <g transform="translate(108,230)">
+    <circle cx="0" cy="-10" r="12" fill="#334155"/>
+    <rect x="-18" y="8" width="36" height="52" rx="10" fill="#334155"/>
+  </g>
+  <rect x="138" y="246" width="66" height="44" rx="6" fill="#ffffff" stroke="#0f766e" stroke-width="2.5"/>
+  <rect x="138" y="258" width="66" height="9" fill="#0f766e"/>
+  <rect x="146" y="276" width="14" height="8" rx="2" fill="#d97706"/>
+  <text x="148" y="318" font-size="13" fill="#334155" text-anchor="middle">Your session key</text>
+
+  <!-- Door 1: Mobile app -->
+  <rect x="260" y="175" width="120" height="210" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2.5"/>
+  <circle cx="350" cy="288" r="6" fill="#64748b"/>
+  <rect x="214" y="250" width="56" height="38" rx="5" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+  <rect x="214" y="259" width="56" height="7" fill="#0f766e"/>
+  <rect x="272" y="148" width="92" height="28" rx="14" fill="#16a34a"/>
+  <text x="318" y="167" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">opens</text>
+  <text x="320" y="415" font-size="13" fill="#334155" text-anchor="middle">Mobile app</text>
+
+  <!-- Door 2: Web dashboard -->
+  <rect x="445" y="175" width="120" height="210" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2.5"/>
+  <circle cx="535" cy="288" r="6" fill="#64748b"/>
+  <rect x="399" y="250" width="56" height="38" rx="5" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+  <rect x="399" y="259" width="56" height="7" fill="#0f766e"/>
+  <line x1="397" y1="247" x2="457" y2="291" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+  <rect x="448" y="148" width="118" height="28" rx="14" fill="#dc2626"/>
+  <text x="507" y="167" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">deactivated</text>
+  <text x="505" y="415" font-size="13" fill="#334155" text-anchor="middle">Web dashboard</text>
+
+  <!-- Door 3: Admin console -->
+  <rect x="630" y="175" width="120" height="210" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2.5"/>
+  <circle cx="720" cy="288" r="6" fill="#64748b"/>
+  <text x="690" y="415" font-size="13" fill="#334155" text-anchor="middle">Admin console</text>
+
+  <!-- Kill-switch console -->
+  <rect x="770" y="175" width="170" height="130" rx="12" fill="#e2e8f0" stroke="#1e293b" stroke-width="2"/>
+  <text x="855" y="218" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Kill-switch —</text>
+  <text x="855" y="240" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">revoke everywhere</text>
+
+  <!-- Big red button -->
+  <circle cx="855" cy="345" r="30" fill="#fee2e2" stroke="#dc2626" stroke-width="3"/>
+  <circle cx="855" cy="345" r="18" fill="#dc2626"/>
+
+  <!-- Desk clerk pressing the button -->
+  <g transform="translate(918,320)">
+    <circle cx="0" cy="0" r="11" fill="#334155"/>
+    <rect x="-15" y="16" width="30" height="46" rx="9" fill="#334155"/>
+  </g>
+  <line x1="903" y1="350" x2="886" y2="346" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+  <text x="918" y="412" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">desk clerk</text>
+
+  <!-- Caption -->
+  <text x="480" y="500" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">Lose the card? One press closes every door.</text>
+</svg>

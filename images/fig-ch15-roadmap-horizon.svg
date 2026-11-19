@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <defs>
+    <marker id="arrow-slate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="40" y="42" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">Three Horizons</text>
+
+  <!-- Horizon 1 card -->
+  <g>
+    <rect x="110" y="110" width="240" height="230" rx="12" fill="#ffffff" stroke="#0f766e" stroke-width="3"/>
+    <rect x="130" y="128" width="200" height="48" rx="17" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+    <text x="230" y="148" font-size="12" fill="#0f766e" text-anchor="middle">Horizon 1 &#8212;</text>
+    <text x="230" y="168" font-size="14" font-weight="bold" fill="#0f766e" text-anchor="middle">Harden today</text>
+    <rect x="130" y="196" width="200" height="32" rx="16" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+    <text x="230" y="217" font-size="13" fill="#334155" text-anchor="middle">events, k8s</text>
+    <rect x="130" y="248" width="200" height="32" rx="16" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+    <text x="230" y="269" font-size="13" fill="#334155" text-anchor="middle">telemetry</text>
+    <text x="230" y="318" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">stabilise what runs today</text>
+  </g>
+
+  <!-- Horizon 2 card -->
+  <g>
+    <rect x="375" y="110" width="240" height="230" rx="12" fill="#ffffff" stroke="#d97706" stroke-width="3"/>
+    <rect x="395" y="128" width="200" height="48" rx="17" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="495" y="148" font-size="12" fill="#d97706" text-anchor="middle">Horizon 2 &#8212;</text>
+    <text x="495" y="168" font-size="14" font-weight="bold" fill="#d97706" text-anchor="middle">Automate &amp; connect</text>
+    <rect x="395" y="196" width="200" height="32" rx="16" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="495" y="217" font-size="13" fill="#334155" text-anchor="middle">AI banker, new rails</text>
+    <rect x="395" y="248" width="200" height="32" rx="16" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="495" y="269" font-size="13" fill="#334155" text-anchor="middle">fraud graph</text>
+    <text x="495" y="318" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">connect the moving parts</text>
+  </g>
+
+  <!-- Horizon 3 card -->
+  <g>
+    <rect x="640" y="110" width="240" height="230" rx="12" fill="#ffffff" stroke="#0ea5e9" stroke-width="3"/>
+    <rect x="660" y="128" width="200" height="48" rx="17" fill="#e2e8f0" stroke="#0ea5e9" stroke-width="2"/>
+    <text x="760" y="148" font-size="12" fill="#0ea5e9" text-anchor="middle">Horizon 3 &#8212;</text>
+    <text x="760" y="168" font-size="14" font-weight="bold" fill="#0ea5e9" text-anchor="middle">Autonomous &amp; embedded</text>
+    <rect x="660" y="196" width="200" height="32" rx="16" fill="#e2e8f0" stroke="#0ea5e9" stroke-width="2"/>
+    <text x="760" y="217" font-size="13" fill="#334155" text-anchor="middle">BaaS, open banking</text>
+    <rect x="660" y="248" width="200" height="32" rx="16" fill="#e2e8f0" stroke="#0ea5e9" stroke-width="2"/>
+    <text x="760" y="269" font-size="13" fill="#334155" text-anchor="middle">global</text>
+    <text x="760" y="318" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">banking as an ambient service</text>
+  </g>
+
+  <!-- Drop lines from cards to timeline -->
+  <g stroke="#1e293b" stroke-width="2">
+    <line x1="230" y1="340" x2="230" y2="408"/>
+    <line x1="495" y1="340" x2="495" y2="408"/>
+    <line x1="760" y1="340" x2="760" y2="408"/>
+  </g>
+
+  <!-- Timeline arrow -->
+  <line x1="80" y1="420" x2="880" y2="420" stroke="#1e293b" stroke-width="4" marker-end="url(#arrow-slate)"/>
+  <!-- Station dots -->
+  <circle cx="230" cy="420" r="9" fill="#0f766e" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="495" cy="420" r="9" fill="#d97706" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="760" cy="420" r="9" fill="#0ea5e9" stroke="#ffffff" stroke-width="3"/>
+  <!-- Station labels -->
+  <text x="230" y="452" font-size="13" font-weight="bold" fill="#0f766e" text-anchor="middle">H1</text>
+  <text x="495" y="452" font-size="13" font-weight="bold" fill="#d97706" text-anchor="middle">H2</text>
+  <text x="760" y="452" font-size="13" font-weight="bold" fill="#0ea5e9" text-anchor="middle">H3</text>
+
+  <!-- Dashed vision line beyond H3 -->
+  <line x1="890" y1="420" x2="945" y2="420" stroke="#64748b" stroke-width="3" stroke-dasharray="8 6"/>
+  <text x="918" y="402" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">vision</text>
+
+  <!-- Caption -->
+  <text x="480" y="510" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">from hardening today to banking that runs itself</text>
+</svg>

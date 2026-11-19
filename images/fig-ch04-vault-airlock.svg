@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="32" y="36" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">The Bank-Vault Airlock</text>
+  <text x="32" y="58" font-size="12" fill="#64748b" text-anchor="start" font-style="italic">A transfer enters the chamber alone.</text>
+
+  <!-- Amina -->
+  <circle cx="95" cy="245" r="12" fill="#0f766e"/>
+  <rect x="82" y="262" width="26" height="36" rx="13" fill="#0f766e"/>
+  <text x="95" y="325" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">Amina</text>
+
+  <!-- Queued case with WAIT badge -->
+  <rect x="155" y="255" width="100" height="56" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="205" y="288" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">TRANSFER</text>
+  <rect x="172" y="222" width="54" height="22" rx="11" fill="#dc2626"/>
+  <text x="199" y="237" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">WAIT</text>
+
+  <!-- Flow arrow into chamber -->
+  <line x1="262" y1="283" x2="408" y2="283" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Airlock chamber -->
+  <rect x="420" y="160" width="190" height="250" rx="12" fill="#ffffff" stroke="#0f766e" stroke-width="2.5"/>
+  <text x="515" y="188" font-size="12" font-weight="bold" fill="#0f766e" text-anchor="middle">airlock chamber</text>
+
+  <!-- Left door: open -->
+  <rect x="392" y="175" width="16" height="220" rx="4" fill="#1e293b"/>
+  <circle cx="400" cy="285" r="4" fill="#e2e8f0"/>
+  <path d="M 408 195 A 200 200 0 0 1 408 375" fill="none" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="400" y="428" font-size="12" fill="#64748b" text-anchor="middle" font-style="italic">open</text>
+
+  <!-- Right door: sealed -->
+  <rect x="588" y="175" width="16" height="220" rx="4" fill="#1e293b"/>
+  <circle cx="596" cy="285" r="4" fill="#e2e8f0"/>
+  <text x="596" y="428" font-size="12" fill="#64748b" text-anchor="middle" font-style="italic">sealed</text>
+
+  <!-- Money case inside chamber -->
+  <rect x="465" y="255" width="100" height="56" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="515" y="288" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">TRANSFER</text>
+
+  <!-- Flow arrow into vault -->
+  <line x1="615" y1="283" x2="665" y2="283" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Vault door -->
+  <rect x="670" y="130" width="220" height="300" rx="16" fill="#e2e8f0" stroke="#1e293b" stroke-width="3"/>
+  <circle cx="780" cy="280" r="48" fill="#ffffff" stroke="#1e293b" stroke-width="3"/>
+  <line x1="732" y1="280" x2="828" y2="280" stroke="#1e293b" stroke-width="3"/>
+  <line x1="780" y1="232" x2="780" y2="328" stroke="#1e293b" stroke-width="3"/>
+  <line x1="746" y1="246" x2="814" y2="314" stroke="#1e293b" stroke-width="3"/>
+  <line x1="814" y1="246" x2="746" y2="314" stroke="#1e293b" stroke-width="3"/>
+  <circle cx="780" cy="280" r="8" fill="#1e293b"/>
+  <text x="780" y="460" font-size="15" font-weight="bold" fill="#1e293b" text-anchor="middle">The Ledger</text>
+  <text x="780" y="480" font-size="12" fill="#64748b" text-anchor="middle">counted exactly once</text>
+
+  <!-- Caption -->
+  <text x="480" y="530" font-size="12" fill="#64748b" text-anchor="middle" font-style="italic">One transfer at a time &#8212; nothing gets counted twice.</text>
+</svg>

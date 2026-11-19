@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="32" y="36" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">Five Journeys, Five Currencies</text>
+  <text x="32" y="58" font-size="12" fill="#64748b" text-anchor="start" font-style="italic">How money actually moves for five kinds of customer.</text>
+
+  <!-- Lane 1: NGN -->
+  <rect x="30" y="88" width="900" height="72" rx="12" fill="#ccfbf1"/>
+  <circle cx="62" cy="114" r="7" fill="#0f766e"/>
+  <rect x="54" y="124" width="16" height="22" rx="8" fill="#0f766e"/>
+  <text x="88" y="118" font-size="13" font-weight="bold" fill="#334155" text-anchor="start">NGN retail user</text>
+  <text x="88" y="138" font-size="12" fill="#64748b" text-anchor="start">everyday naira life</text>
+  <circle cx="270" cy="124" r="17" fill="#d97706"/>
+  <text x="270" y="130" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">&#8358;</text>
+  <rect x="320" y="106" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="405" y="129" font-size="13" fill="#334155" text-anchor="middle">Salary lands</text>
+  <line x1="494" y1="124" x2="514" y2="124" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="520" y="106" width="180" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="610" y="129" font-size="13" fill="#334155" text-anchor="middle">Bills &amp; transfers</text>
+  <line x1="704" y1="124" x2="724" y2="124" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="730" y="106" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="815" y="129" font-size="13" fill="#334155" text-anchor="middle">Savings</text>
+
+  <!-- Lane 2: USD -->
+  <rect x="30" y="172" width="900" height="72" rx="12" fill="#ccfbf1"/>
+  <circle cx="62" cy="198" r="7" fill="#0f766e"/>
+  <rect x="54" y="208" width="16" height="22" rx="8" fill="#0f766e"/>
+  <text x="88" y="202" font-size="13" font-weight="bold" fill="#334155" text-anchor="start">USD cross-border wealth</text>
+  <text x="88" y="222" font-size="12" fill="#64748b" text-anchor="start">dollars across borders</text>
+  <circle cx="270" cy="208" r="17" fill="#d97706"/>
+  <text x="270" y="214" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">$</text>
+  <rect x="320" y="190" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="405" y="213" font-size="13" fill="#334155" text-anchor="middle">Remittance in</text>
+  <line x1="494" y1="208" x2="514" y2="208" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="520" y="190" width="180" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="610" y="213" font-size="13" fill="#334155" text-anchor="middle">Invest</text>
+  <line x1="704" y1="208" x2="724" y2="208" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="730" y="190" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="815" y="213" font-size="13" fill="#334155" text-anchor="middle">Withdraw</text>
+
+  <!-- Lane 3: EUR -->
+  <rect x="30" y="256" width="900" height="72" rx="12" fill="#ccfbf1"/>
+  <circle cx="62" cy="282" r="7" fill="#0f766e"/>
+  <rect x="54" y="292" width="16" height="22" rx="8" fill="#0f766e"/>
+  <text x="88" y="286" font-size="13" font-weight="bold" fill="#334155" text-anchor="start">EUR remittance (KYC hold)</text>
+  <text x="88" y="306" font-size="12" fill="#64748b" text-anchor="start">funds pause for checks</text>
+  <circle cx="270" cy="292" r="17" fill="#d97706"/>
+  <text x="270" y="298" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">&#8364;</text>
+  <rect x="320" y="274" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="405" y="297" font-size="13" fill="#334155" text-anchor="middle">Deposit arrives</text>
+  <line x1="494" y1="292" x2="514" y2="292" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="520" y="274" width="180" height="36" rx="16" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text x="610" y="297" font-size="13" font-weight="bold" fill="#dc2626" text-anchor="middle">KYC hold</text>
+  <line x1="704" y1="292" x2="724" y2="292" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="730" y="274" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="815" y="297" font-size="13" fill="#334155" text-anchor="middle">Released</text>
+
+  <!-- Lane 4: GBP -->
+  <rect x="30" y="340" width="900" height="72" rx="12" fill="#ccfbf1"/>
+  <circle cx="62" cy="366" r="7" fill="#0f766e"/>
+  <rect x="54" y="376" width="16" height="22" rx="8" fill="#0f766e"/>
+  <text x="88" y="370" font-size="13" font-weight="bold" fill="#334155" text-anchor="start">GBP freelancer savings</text>
+  <text x="88" y="390" font-size="12" fill="#64748b" text-anchor="start">paid in pounds, saved</text>
+  <circle cx="270" cy="376" r="17" fill="#d97706"/>
+  <text x="270" y="382" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">&#163;</text>
+  <rect x="320" y="358" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="405" y="381" font-size="13" fill="#334155" text-anchor="middle">Invoice paid</text>
+  <line x1="494" y1="376" x2="514" y2="376" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="520" y="358" width="180" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="610" y="381" font-size="13" fill="#334155" text-anchor="middle">Pool savings</text>
+  <line x1="704" y1="376" x2="724" y2="376" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="730" y="358" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="815" y="381" font-size="13" fill="#334155" text-anchor="middle">Withdraw</text>
+
+  <!-- Lane 5: CAD -->
+  <rect x="30" y="424" width="900" height="72" rx="12" fill="#ccfbf1"/>
+  <circle cx="62" cy="450" r="7" fill="#0f766e"/>
+  <rect x="54" y="460" width="16" height="22" rx="8" fill="#0f766e"/>
+  <text x="88" y="454" font-size="13" font-weight="bold" fill="#334155" text-anchor="start">CAD business payment</text>
+  <text x="88" y="474" font-size="12" fill="#64748b" text-anchor="start">a firm pays its suppliers</text>
+  <circle cx="270" cy="460" r="17" fill="#d97706"/>
+  <text x="270" y="466" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">C$</text>
+  <rect x="320" y="442" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="405" y="465" font-size="13" fill="#334155" text-anchor="middle">Client pays</text>
+  <line x1="494" y1="460" x2="514" y2="460" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="520" y="442" width="180" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="610" y="465" font-size="13" fill="#334155" text-anchor="middle">Pay suppliers</text>
+  <line x1="704" y1="460" x2="724" y2="460" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="730" y="442" width="170" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="815" y="465" font-size="13" fill="#334155" text-anchor="middle">Reconcile</text>
+
+  <!-- Caption -->
+  <text x="32" y="532" font-size="12" fill="#64748b" text-anchor="start" font-style="italic">Five currencies, one engine — every lane runs on the same double-entry ledger.</text>
+</svg>

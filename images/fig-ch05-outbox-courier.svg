@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="40" y="44" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">The Guaranteed Courier</text>
+
+  <!-- Sender: the ledger / outbox -->
+  <rect x="40" y="150" width="230" height="170" rx="12" fill="#ccfbf1" stroke="#0f766e" stroke-width="2.5"/>
+  <text x="155" y="192" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">The Ledger</text>
+  <text x="155" y="218" font-size="13" fill="#334155" text-anchor="middle">receipt written to</text>
+  <text x="155" y="236" font-size="13" fill="#334155" text-anchor="middle">the outbox</text>
+  <g transform="translate(155,282)">
+    <path d="M -20 -17 L 20 -17 L 20 17 L 12 13 L 4 17 L -4 13 L -12 17 L -20 13 Z" fill="#ffffff" stroke="#0f766e" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="-11" y1="-8" x2="11" y2="-8" stroke="#0f766e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-11" y1="1" x2="11" y2="1" stroke="#0f766e" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-11" y1="9" x2="2" y2="9" stroke="#0f766e" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Dotted delivery path -->
+  <path d="M 278 235 C 350 238 390 252 450 248 C 540 242 600 228 668 222" fill="none" stroke="#0f766e" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 8" marker-end="url(#arrow)"/>
+
+  <!-- Courier figure -->
+  <g transform="translate(420,190)">
+    <path d="M -14 -28 L 14 -28 L 0 -44 Z" fill="#d97706" stroke-linejoin="round"/>
+    <rect x="-15" y="-31" width="30" height="5" rx="2.5" fill="#d97706"/>
+    <circle cx="0" cy="-16" r="11" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <rect x="-13" y="-2" width="26" height="34" rx="8" fill="#d97706"/>
+    <rect x="-10" y="32" width="8" height="14" rx="3" fill="#d97706"/>
+    <rect x="2" y="32" width="8" height="14" rx="3" fill="#d97706"/>
+    <rect x="14" y="2" width="68" height="32" rx="5" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="48" y="23" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">RECEIPT</text>
+  </g>
+
+  <!-- Red branch to dead-letter queue -->
+  <path d="M 452 252 C 480 288 505 318 540 338" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#arrow-red)"/>
+  <g transform="translate(492,292) rotate(-35)">
+    <rect x="-33" y="-15" width="66" height="30" rx="5" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="0" y="5" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">RECEIPT</text>
+  </g>
+
+  <!-- Destination card -->
+  <rect x="685" y="130" width="240" height="180" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="805" y="178" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">SMS / Push / Email</text>
+  <text x="805" y="202" font-size="13" fill="#334155" text-anchor="middle">the customer</text>
+  <g transform="translate(745,252)">
+    <circle cx="0" cy="0" r="13" fill="#16a34a"/>
+    <path d="M -5 0 L -1 5 L 6 -5" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(805,252)">
+    <circle cx="0" cy="0" r="13" fill="#16a34a"/>
+    <path d="M -5 0 L -1 5 L 6 -5" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(865,252)">
+    <circle cx="0" cy="0" r="13" fill="#16a34a"/>
+    <path d="M -5 0 L -1 5 L 6 -5" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Dead-letter queue side door -->
+  <rect x="420" y="330" width="260" height="155" rx="12" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="550" y="368" font-size="15" font-weight="bold" fill="#dc2626" text-anchor="middle">Dead-Letter Queue</text>
+  <rect x="435" y="388" width="230" height="32" rx="16" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <text x="550" y="409" font-size="12" fill="#dc2626" text-anchor="middle">retries, then parked — never lost</text>
+
+  <!-- Caption -->
+  <text x="480" y="522" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">Written down first, delivered after. Nothing disappears.</text>
+</svg>

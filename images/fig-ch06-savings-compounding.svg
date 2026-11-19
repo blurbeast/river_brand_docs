@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+    <clipPath id="jar-clip">
+      <path d="M 192 185 L 197 432 Q 199 462 229 462 L 311 462 Q 341 462 343 432 L 348 185 Z"/>
+    </clipPath>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="40" y="44" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">A Jar That Fills Itself</text>
+
+  <!-- Jar glass -->
+  <path d="M 192 185 L 197 432 Q 199 462 229 462 L 311 462 Q 341 462 343 432 L 348 185 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="2.5" stroke-linejoin="round"/>
+  <g clip-path="url(#jar-clip)">
+    <rect x="188" y="312" width="170" height="155" fill="#fef3c7"/>
+    <rect x="188" y="312" width="170" height="28" fill="#d97706"/>
+  </g>
+  <ellipse cx="270" cy="185" rx="82" ry="11" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2.5"/>
+  <line x1="197" y1="250" x2="216" y2="250" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+  <line x1="197" y1="285" x2="216" y2="285" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+  <line x1="197" y1="320" x2="216" y2="320" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Coins in the liquid -->
+  <g transform="translate(232,412)">
+    <circle cx="0" cy="0" r="13" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="0" y="5" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">&#8358;</text>
+  </g>
+  <g transform="translate(296,428)">
+    <circle cx="0" cy="0" r="13" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="0" y="5" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">&#8358;</text>
+  </g>
+  <g transform="translate(262,372)">
+    <circle cx="0" cy="0" r="13" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="0" y="5" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">&#8358;</text>
+  </g>
+  <g transform="translate(312,345)">
+    <circle cx="0" cy="0" r="13" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="0" y="5" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">&#8358;</text>
+  </g>
+  <g transform="translate(228,345)">
+    <circle cx="0" cy="0" r="13" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="0" y="5" font-size="12" font-weight="bold" fill="#d97706" text-anchor="middle">&#8358;</text>
+  </g>
+
+  <!-- Input money flow -->
+  <text x="52" y="286" font-size="14" font-weight="bold" fill="#d97706" text-anchor="start">N100,000</text>
+  <line x1="52" y1="302" x2="186" y2="302" stroke="#d97706" stroke-width="2.5" marker-end="url(#arrow-amber)"/>
+
+  <!-- Output money flow -->
+  <line x1="350" y1="430" x2="468" y2="430" stroke="#d97706" stroke-width="2.5" marker-end="url(#arrow-amber)"/>
+  <text x="478" y="435" font-size="14" font-weight="bold" fill="#d97706" text-anchor="start">N100,000 + growth</text>
+
+  <!-- Nightly interest note with crescent -->
+  <path d="M 21 12.79 A 9 9 0 1 1 11.21 3 A 7 7 0 0 0 21 12.79 Z" fill="#1e293b" transform="translate(398,178)"/>
+  <text x="432" y="197" font-size="13" fill="#334155" text-anchor="start">each night: interest is added and locked</text>
+
+  <!-- Six-month timeline -->
+  <line x1="405" y1="385" x2="925" y2="385" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="455" cy="385" r="7" fill="#0f766e"/>
+  <circle cx="545" cy="385" r="7" fill="#0f766e"/>
+  <circle cx="635" cy="385" r="7" fill="#0f766e"/>
+  <circle cx="725" cy="385" r="7" fill="#0f766e"/>
+  <circle cx="815" cy="385" r="7" fill="#0f766e"/>
+  <circle cx="905" cy="385" r="7" fill="#0f766e"/>
+  <text x="455" y="412" font-size="12" fill="#64748b" text-anchor="middle">Month 1</text>
+  <text x="545" y="412" font-size="12" fill="#64748b" text-anchor="middle">Month 2</text>
+  <text x="635" y="412" font-size="12" fill="#64748b" text-anchor="middle">Month 3</text>
+  <text x="725" y="412" font-size="12" fill="#64748b" text-anchor="middle">Month 4</text>
+  <text x="815" y="412" font-size="12" fill="#64748b" text-anchor="middle">Month 5</text>
+  <text x="905" y="412" font-size="12" fill="#64748b" text-anchor="middle">Month 6</text>
+
+  <!-- Rising step chart -->
+  <path d="M 405 355 H 500 V 340 H 590 V 322 H 680 V 300 H 770 V 272 H 860 V 242 H 925" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Rate note -->
+  <text x="480" y="522" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">illustrative — product rates are configurable</text>
+</svg>

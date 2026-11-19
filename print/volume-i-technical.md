@@ -1,0 +1,24 @@
+# Volume I — Technical Track (include manifest, in book order)
+front-matter/f01-title-page.md
+front-matter/f02-authors.md
+front-matter/f03-copyright.md
+front-matter/f04-preface.md
+front-matter/f05-how-to-read.md
+front-matter/f06-table-of-contents.md
+front-matter/f07-list-of-figures.md
+chapters/ch01-riverbrand-story.md
+chapters/ch02-learn-unlearn-relearn.md
+chapters/ch03-domain-primer.md
+chapters/ch05-engineering-transaction-engine.md
+chapters/ch07-engineering-channel-fabric.md
+chapters/ch09-engineering-security-architecture.md
+chapters/ch11-engineering-operations-manual.md
+chapters/ch13-engineering-service-catalog.md
+chapters/ch15-engineering-roadmap.md
+chapters/ch16-engineer-onboarding.md
+appendices/app-a-glossary.md
+appendices/app-c-data-dictionary.md
+appendices/app-d-api-reference.md
+appendices/app-g-changelog.md
+appendices/app-h-contribution.md
+appendices/app-i-onboarding-checklist.md

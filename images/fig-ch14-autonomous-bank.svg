@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/>
+    </marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+
+  <text x="48" y="46" font-size="22" font-weight="bold" fill="#1e293b">The Self-Driving Financial Vehicle</text>
+  <text x="48" y="72" font-size="13" fill="#64748b" font-style="italic">From texting the bank — to the bank driving with you</text>
+
+  <!-- Road -->
+  <rect x="48" y="380" width="864" height="70" rx="12" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="90" y1="415" x2="870" y2="415" stroke="#94a3b8" stroke-width="4" stroke-dasharray="26 20"/>
+
+  <!-- Car body -->
+  <rect x="150" y="300" width="300" height="110" rx="22" fill="#0f766e"/>
+  <rect x="205" y="252" width="180" height="60" rx="14" fill="#14b8a6"/>
+  <rect x="222" y="264" width="68" height="38" rx="8" fill="#ccfbf1"/>
+  <rect x="300" y="264" width="68" height="38" rx="8" fill="#ccfbf1"/>
+  <circle cx="215" cy="410" r="30" fill="#1e293b"/><circle cx="215" cy="410" r="13" fill="#cbd5e1"/>
+  <circle cx="395" cy="410" r="30" fill="#1e293b"/><circle cx="395" cy="410" r="13" fill="#cbd5e1"/>
+  <rect x="430" y="330" width="26" height="16" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="300" y="372" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Riverbrand — the banking engine</text>
+  <rect x="240" y="200" width="176" height="36" rx="16" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="328" y="223" font-size="13" font-weight="bold" fill="#d97706" text-anchor="middle">Today: you steer (the chat)</text>
+
+  <!-- Passenger / person -->
+  <circle cx="120" cy="330" r="18" fill="#1e293b"/>
+  <rect x="98" y="352" width="44" height="52" rx="12" fill="#334155"/>
+
+  <!-- Horizon cards on the road -->
+  <rect x="520" y="120" width="360" height="96" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="536" y="136" width="10" height="64" rx="5" fill="#0f766e"/>
+  <text x="562" y="162" font-size="15" font-weight="bold" fill="#334155">Tomorrow: it drives with you</text>
+  <text x="562" y="186" font-size="13" fill="#334155">Bills spotted before due dates. Savings</text>
+  <text x="562" y="204" font-size="13" fill="#334155">moved automatically. Alerts that act.</text>
+
+  <rect x="520" y="236" width="360" height="96" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="536" y="252" width="10" height="64" rx="5" fill="#0ea5e9"/>
+  <text x="562" y="278" font-size="15" font-weight="bold" fill="#334155">Someday: it runs errands itself</text>
+  <text x="562" y="302" font-size="13" fill="#334155">Money routed across borders and banks</text>
+  <text x="562" y="320" font-size="13" fill="#334155">while you sleep — always with your rules.</text>
+
+  <!-- Arrows: car to horizon cards -->
+  <path d="M 460 330 C 490 300, 500 200, 512 170" fill="none" stroke="#0f766e" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M 460 350 C 500 340, 505 300, 512 286" fill="none" stroke="#0ea5e9" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Speed / trust dial -->
+  <circle cx="700" cy="418" r="40" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M 680 432 A 26 26 0 1 1 722 424" fill="none" stroke="#0f766e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="700" y1="418" x2="718" y2="400" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+  <text x="700" y="478" font-size="12" fill="#64748b" text-anchor="middle">trust &amp; control stay yours</text>
+
+  <!-- Milestone dots -->
+  <circle cx="560" cy="415" r="8" fill="#0f766e"/>
+  <circle cx="700" cy="415" r="8" fill="#0ea5e9"/>
+  <circle cx="840" cy="415" r="8" fill="#d97706"/>
+  <text x="560" y="440" font-size="12" fill="#64748b" text-anchor="middle">now</text>
+  <text x="840" y="440" font-size="12" fill="#64748b" text-anchor="middle">ahead</text>
+
+  <text x="480" y="530" font-size="12" fill="#64748b" font-style="italic" text-anchor="middle">Automation that never takes the wheel out of your hands — it just stops you having to hold it all day.</text>
+</svg>

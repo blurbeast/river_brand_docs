@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Riverbrand Enterprise Banking Engine - Documentation</title>
+  <title>Riverbrand Banking System — The Definitive Knowledge Book</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Authoritative Technical & Architectural Reference Suite for Riverbrand Enterprise Banking Platform">
+  <meta name="description" content="The definitive technical and business guide to the Riverbrand Banking Engine (RiverbrandBE) — for engineers, executives, and everyone in between.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  
-  <!-- Theme: Dark / Light Mode -->
+
+  <!-- Theme: Light / Dark Mode -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" id="theme-light">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css" id="theme-dark" disabled>
-  
+
   <!-- Custom Styling for Modern Financial Aesthetic -->
   <style>
     :root {
-      --theme-color: #2563eb;
+      --theme-color: #0f766e;
       --sidebar-width: 320px;
+      --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
     }
     .sidebar {
       font-size: 15px;
@@ -23,16 +24,31 @@
     .sidebar-nav li a {
       font-weight: 500;
     }
+    .sidebar-nav ul li strong {
+      letter-spacing: 0.06em;
+      font-size: 12.5px;
+    }
     .markdown-section {
-      max-width: 900px;
+      max-width: 920px;
       padding: 30px 45px 40px;
+      font-family: var(--serif);
+      line-height: 1.75;
+    }
+    .markdown-section h1, .markdown-section h2, .markdown-section h3 {
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    .markdown-section blockquote {
+      border-left: 4px solid #0f766e;
+      background: #f0fdfa;
+      padding: 12px 18px;
+      color: #134e4a;
     }
     .theme-toggle-btn {
       position: fixed;
       top: 15px;
       right: 20px;
       z-index: 100;
-      background: #2563eb;
+      background: #0f766e;
       color: #fff;
       border: none;
       padding: 8px 16px;
@@ -40,41 +56,69 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
-      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+      box-shadow: 0 4px 12px rgba(15,118,110,0.3);
       transition: all 0.2s ease;
     }
     .theme-toggle-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(37,99,235,0.4);
+      box-shadow: 0 6px 16px rgba(15,118,110,0.4);
     }
+    .persona-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .persona-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+      background: #f8fafc;
+      text-decoration: none !important;
+      color: inherit !important;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .persona-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(15,118,110,0.15);
+    }
+    .persona-card h3 { margin: 0 0 8px; font-size: 16px; color: #0f766e; }
+    .persona-card p { margin: 0; font-size: 14px; color: #334155; line-height: 1.5; }
   </style>
 </head>
 <body>
-  <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Toggle Dark Mode</button>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">Toggle Dark Mode</button>
   <div id="app">Loading Riverbrand Banking Documentation...</div>
 
   <script>
     window.$docsify = {
-      name: '🏦 Riverbrand Banking Docs',
+      name: 'Riverbrand Banking Docs',
       loadSidebar: '_sidebar.md',
       auto2top: true,
       homepage: 'README.md',
+      maxLevel: 3,
+      subMaxLevel: 3,
       search: {
         maxAge: 86400000,
         paths: 'auto',
-        placeholder: '🔍 Search docs...',
+        placeholder: 'Search the book...',
         noData: 'No matching documentation found!',
-        depth: 6
+        depth: 3
       },
       copyCode: {
-        buttonText: '📋 Copy',
+        buttonText: 'Copy',
         errorText: 'Error',
         successText: 'Copied!'
       },
       pagination: {
-        previousText: 'PREVIOUS CHAPTER',
-        nextText: 'NEXT CHAPTER',
+        previousText: 'PREVIOUS',
+        nextText: 'NEXT',
         crossChapter: true
+      },
+      markdown: {
+        mermaidConfig: {
+          theme: 'neutral'
+        }
       }
     }
 
@@ -82,15 +126,15 @@
       const lightTheme = document.getElementById('theme-light');
       const darkTheme = document.getElementById('theme-dark');
       const btn = document.querySelector('.theme-toggle-btn');
-      
+
       if (lightTheme.disabled) {
         lightTheme.disabled = false;
         darkTheme.disabled = true;
-        btn.innerText = '🌙 Toggle Dark Mode';
+        btn.innerText = 'Toggle Dark Mode';
       } else {
         lightTheme.disabled = true;
         darkTheme.disabled = false;
-        btn.innerText = '☀️ Toggle Light Mode';
+        btn.innerText = 'Toggle Light Mode';
       }
     }
   </script>
@@ -100,7 +144,9 @@
   <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  
+  <script src="//cdn.jsdelivr.net/npm/docsify-mermaid@2/dist/docsify-mermaid.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js"></script>
+
   <!-- Code Syntax Highlighting -->
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>

@@ -1,0 +1,8 @@
+# Local toolchain (pandoc, typst, mermaid-cli, node_modules)
+tools/
+
+# Agent workspace
+.mimocode/
+
+# Regenerable PDF build intermediates (rebuild via `make pdf`)
+print/vol*-combined.*

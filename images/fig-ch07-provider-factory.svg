@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Segoe UI, Avenir Next, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706"/></marker>
+  </defs>
+  <rect width="960" height="560" fill="#f8fafc"/>
+  <text x="40" y="44" font-size="22" font-weight="bold" fill="#1e293b" text-anchor="start">One Socket, Many Plugs</text>
+
+  <!-- Customer chat bubble -->
+  <rect x="88" y="210" width="132" height="88" rx="16" fill="#ccfbf1" stroke="#0f766e" stroke-width="2.5"/>
+  <path d="M 118 296 L 106 322 L 150 296 Z" fill="#ccfbf1" stroke="#0f766e" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="128" cy="254" r="6" fill="#0f766e"/>
+  <circle cx="154" cy="254" r="6" fill="#0f766e"/>
+  <circle cx="180" cy="254" r="6" fill="#0f766e"/>
+  <text x="154" y="348" font-size="13" fill="#334155" text-anchor="middle">Customer message</text>
+
+  <!-- Cord and plug into the strip -->
+  <path d="M 226 254 C 258 254 284 254 308 254" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+  <rect x="302" y="243" width="24" height="22" rx="5" fill="#0f766e"/>
+
+  <!-- Power strip / factory card -->
+  <rect x="336" y="145" width="224" height="300" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="448" y="268" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">WhatsApp</text>
+  <text x="448" y="290" font-size="15" font-weight="bold" fill="#334155" text-anchor="middle">Provider Factory</text>
+
+  <!-- Plug ports -->
+  <rect x="538" y="168" width="22" height="14" rx="4" fill="#1e293b"/>
+  <rect x="538" y="218" width="22" height="14" rx="4" fill="#1e293b"/>
+  <rect x="538" y="268" width="22" height="14" rx="4" fill="#1e293b"/>
+  <rect x="538" y="318" width="22" height="14" rx="4" fill="#1e293b"/>
+  <rect x="538" y="368" width="22" height="14" rx="4" fill="#1e293b"/>
+  <rect x="538" y="418" width="22" height="14" rx="4" fill="#1e293b"/>
+
+  <!-- Cords to providers -->
+  <path d="M 562 175 C 592 171 608 179 638 175" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+  <path d="M 562 225 C 592 221 608 229 638 225" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 5"/>
+  <path d="M 562 275 C 592 271 608 279 638 275" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+  <path d="M 562 325 C 592 321 608 329 638 325" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+  <path d="M 562 375 C 592 371 608 379 638 375" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+  <path d="M 562 425 C 592 421 608 429 638 425" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+
+  <!-- Provider badges -->
+  <rect x="640" y="157" width="200" height="36" rx="16" fill="#ccfbf1" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="740" y="180" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">Meta</text>
+  <rect x="640" y="207" width="200" height="36" rx="16" fill="#fef3c7" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="740" y="230" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">Twilio</text>
+  <rect x="640" y="257" width="200" height="36" rx="16" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="740" y="280" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">Termii</text>
+  <rect x="640" y="307" width="200" height="36" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="740" y="330" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">WATI</text>
+  <rect x="640" y="357" width="200" height="36" rx="16" fill="#fee2e2" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="740" y="380" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">Interakt</text>
+  <rect x="640" y="407" width="200" height="36" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="740" y="430" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">360dialog</text>
+
+  <!-- Twilio down badge -->
+  <rect x="850" y="213" width="56" height="24" rx="12" fill="#dc2626"/>
+  <text x="878" y="229" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">down</text>
+
+  <!-- Failover arc -->
+  <path d="M 634 236 C 592 244 572 254 558 266" fill="none" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Caption -->
+  <text x="480" y="505" font-size="12" font-style="italic" fill="#64748b" text-anchor="middle">Unplug one, the conversation moves to the next.</text>
+</svg>
